@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useState, useMemo } from "react"
+import { useState, useMemo, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
@@ -632,7 +632,7 @@ const ShopCard = ({ product, onClick, onAdd }: { product: Product, onClick: () =
   )
 }
 
-export default function ShopPage() {
+function ShopContent() {
   const { toast } = useToast()
   const { addItem } = useCart()
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -818,5 +818,14 @@ export default function ShopPage() {
 
       </div>
     </div>
+  )
+}
+
+// 2. Wrap the content in a Suspense boundary
+export default function ShopPage() {
+  return (
+    <Suspense fallback={<div className="w-full h-screen flex items-center justify-center text-muted-foreground">Loading shop...</div>}>
+      <ShopContent />
+    </Suspense>
   )
 }
