@@ -22,11 +22,11 @@ const DROP_ITEMS: Product[] = [
     tagline: "a longwear high-shine lip gloss",
     price: 395,
     // Updated Image
-    image: "/images/Rectangle 141.png", 
+    image: "/images/BABYGIRL.png", 
     colors: ["#A81C26", "#B55A55"],
     variants: [
-        { name: "Sizzle", color: "#A81C26", image: "/images/Rectangle 87.png" },
-        { name: "Glaze", color: "#B55A55", image: "/images/Rectangle 87.png" }
+        { name: "Lavish", color: "#A81C26", image: "/images/LAVISH.jpg" },
+        { name: "Dainty", color: "#B55A55", image: "/images/DAINTY.png" }
     ],
     whatItIs: "A high-shine, longwear lip gloss that coats the lips in bold, vibrant color.",
     whyWeLoveIt: "It’s the gloss that lasts. Enjoy all-day color, shine, and hydration—without the stickiness.",
@@ -36,17 +36,17 @@ const DROP_ITEMS: Product[] = [
   },
   {
     id: "drop-2",
-    name: "Cloud Bullet", 
+    name: "Fluffmatte", 
     tagline: "a weightless modern matte lipstick",
     price: 495,
     // Updated Image
     image: "/images/Rectangle 131.png", 
     colors: ["#B55A55", "#D67F68", "#E8A69D", "#A81C26"],
     variants: [
-      { name: "Girl Crush", color: "#B55A55", image: "/images/Rectangle 129.png" },
-      { name: "Vacay", color: "#D67F68", image: "/images/Rectangle 129.png" },
-      { name: "Milkshake", color: "#E8A69D", image: "/images/Rectangle 129.png" },
-      { name: "Major", color: "#A81C26", image: "/images/Rectangle 129.png" }
+      { name: "Girl Crush", color: "#B55A55", image: "/images/Girl Crush.png" },
+      { name: "Brunette", color: "#D67F68", image: "/images/Brunette.png" },
+      { name: "Nudist", color: "#E8A69D", image: "/images/Nudist.png" },
+      { name: "Casual", color: "#A81C26", image: "/images/Casual.png" }
     ],
     whatItIs: "A modern matte lipstick reinvented for everyday wear.",
     whyWeLoveIt: "Each shade melts into the lips with a velvety finish that never feels heavy.",
@@ -63,7 +63,7 @@ const DROP_ITEMS: Product[] = [
     image: "/images/Rectangle 144-6.png",
     colors: ["#A88B7D"],
     variants: [
-        { name: "Day", color: "#A88B7D", image: "/images/eyes.jpg" }
+        { name: "Day", color: "#A88B7D", image: "/images/Rectangle 144-6.png" }
     ],
     whatItIs: "A four-shade eyeshadow palette with versatile tones.",
     whyWeLoveIt: "Enriched with Vitamin E for hydration and comfort.",
@@ -80,7 +80,7 @@ const DROP_ITEMS: Product[] = [
     image: "/images/Rectangle 146-2.png", 
     colors: ["#1A1A1A"],
     variants: [
-        { name: "Black", color: "#1A1A1A", image: "/images/eyes.jpg" }
+        { name: "Black", color: "#1A1A1A", image: "/images/Rectangle 146-2.png" }
     ],
     whatItIs: "A waterproof mascara with 12-hour wear and a tiny-but-mighty wand.",
     whyWeLoveIt: "The precision brush makes defining your lashes super simple.",
