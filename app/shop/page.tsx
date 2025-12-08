@@ -60,11 +60,11 @@ const SHOP_DATA: Category[] = [
         image: "/images/Rectangle 131.png", 
         colors: ["#B55A55", "#D67F68", "#E8A69D", "#A81C26", "#944E45"],
         variants: [
-          { name: "Girl Crush", color: "#B55A55", image: "/images/Rectangle 129.png" },
-          { name: "Vacay", color: "#D67F68", image: "/images/Rectangle 129.png" },
-          { name: "Milkshake", color: "#E8A69D", image: "/images/Rectangle 129.png" },
-          { name: "Major", color: "#A81C26", image: "/images/Rectangle 129.png" },
-          { name: "Baked", color: "#944E45", image: "/images/Rectangle 129.png" }
+          { name: "Girl Crush", color: "#B55A55", image: "/images/Girl Crush.png" },
+          { name: "Brunette", color: "#D67F68", image: "/images/Brunette.png" },
+          { name: "Nudist", color: "#E8A69D", image: "/images/Nudist.png" },
+          { name: "Casual", color: "#A81C26", image: "/images/Casual.png" },
+          { name: "Baked", color: "#944E45", image: "/images/Baked.png" }
         ],
         weight: "3.2 g / 0.11 oz",
         whatItIs: "A modern matte lipstick reinvented for everyday wear. Fluffmatte glides on effortlessly, delivering smooth, even pigment with a second-skin feel.",
@@ -81,10 +81,10 @@ const SHOP_DATA: Category[] = [
         image: "/images/Rectangle 134.png", 
         colors: ["#A81C26", "#B55A55", "#D67F68", "#944E45"],
         variants: [
-          { name: "Lychee", color: "#A81C26", image: "/images/Rectangle 134.png" },
-          { name: "Strawberry", color: "#B55A55", image: "/images/Rectangle 134.png" },
-          { name: "Peach", color: "#D67F68", image: "/images/Rectangle 134.png" },
-          { name: "Berry", color: "#944E45", image: "/images/Rectangle 134.png" }
+          { name: "Lychee", color: "#A81C26", image: "/images/Strawberry.png" },
+          { name: "Strawberry", color: "#B55A55", image: "/images/Lychee.png" },
+          { name: "Tea Rose", color: "#D67F68", image: "/images/Tea Rose.png" },
+          { name: "Mulberry", color: "#944E45", image: "/images/Mulberry.png" }
         ],
         weight: "3.5 g / 0.12 oz",
         whatItIs: "Juicetint is a hydrating lip oil–tint hybrid infused with nourishing ingredients for healthier-looking lips. It applies like a gloss, melts into a lightweight tint, and leaves behind a soft, long-lasting stain.",
@@ -104,9 +104,9 @@ const SHOP_DATA: Category[] = [
         image: "/images/Rectangle 131.png", 
         colors: ["#D88A7A", "#C27970", "#B55A55"],
         variants: [
-          { name: "Perfect Nude", color: "#D88A7A", image: "/images/Rectangle 131.png" },
-          { name: "Perfect Pink", color: "#C27970", image: "/images/Rectangle 131.png" },
-          { name: "Perfect Mauve", color: "#B55A55", image: "/images/Rectangle 131.png" }
+          { name: "Perfect Nude", color: "#D88A7A", image: "/images/PERFECT NUDE.png" },
+          { name: "Perfect Pink", color: "#C27970", image: "/images/PERFECT PINK.png" },
+          { name: "Perfect Mauve", color: "#B55A55", image: "/images/PERFECT MAUVE.png" }
         ],
         weight: "3.2 g / 0.11 oz",
         whatItIs: "A moisturizing, buildable lipstick with a weightless finish, designed to give lips a soft, cloud-like diffused effect.",
@@ -123,8 +123,8 @@ const SHOP_DATA: Category[] = [
         image: "/images/Rectangle 133.png", 
         colors: ["#E8A69D", "#D67F68"],
         variants: [
-            { name: "Cranberry", color: "#E8A69D", image: "/images/Rectangle 133.png" },
-            { name: "Tarragon", color: "#D67F68", image: "/images/Rectangle 133.png" }
+            { name: "Gumamela", color: "#E8A69D", image: "/images/GUMAMELA.png" },
+            { name: "Tart", color: "#D67F68", image: "/images/TART.png" }
         ],
         weight: "2.3 g / 0.08 oz",
         whatItIs: "A high-shine gloss stick that glides on like a balm, delivering rich pigment and an ultra-luminous finish.",
@@ -141,9 +141,9 @@ const SHOP_DATA: Category[] = [
         image: "/images/Rectangle 129-1.png", 
         colors: ["#944E45", "#B55A55", "#A81C26"],
         variants: [
-            { name: "Terracotta", color: "#944E45", image: "/images/Rectangle 129-1.png" },
-            { name: "Coco", color: "#B55A55", image: "/images/Rectangle 129-1.png" },
-            { name: "Rose", color: "#A81C26", image: "/images/Rectangle 129-1.png" }
+            { name: "Nonchalant", color: "#944E45", image: "/images/Nonchalant.png" },
+            { name: "Nougat", color: "#B55A55", image: "/images/Nougat.png" },
+            { name: "Dragon", color: "#A81C26", image: "/images/Dragon.png" }
         ],
         weight: "3g / 0.11oz",
         whatItIs: "A blurred matte lip tint that gives your lips a soft, long-lasting wash of color.",
@@ -158,10 +158,10 @@ const SHOP_DATA: Category[] = [
         tagline: "High-shine longwear lip gloss", 
         price: 595, 
         image: "/images/Rectangle 141.png", 
-        colors: ["#A81C26", "#B55A55"], 
+        colors: ["#A81C26", "#B55A55"],
         variants: [
-            { name: "Sizzle", color: "#A81C26", image: "/images/Rectangle 141.png" },
-            { name: "Glaze", color: "#B55A55", image: "/images/Rectangle 141.png" }
+            { name: "Lavish", color: "#A81C26", image: "/images/LAVISH.jpg" },
+            { name: "Dainty", color: "#B55A55", image: "/images/DAINTY.png" }
         ],
         whatItIs: "Staygloss is a high-shine, longwear lip gloss that coats the lips in bold, vibrant color with just one swipe. Infused with nourishing conditioners and color-lock technology, this performance-driven formula cushions the lips while delivering smooth, comfortable, transfer-resistant wear for up to 12 hours.",
         whyWeLoveIt: "It’s the gloss that lasts and the comfort you didn’t expect. This advanced, transfer-resistant formula glides effortlessly to create a glassy, lacquered finish that doesn’t budge. Enjoy all-day color, shine, and hydration—without the stickiness.",
@@ -182,10 +182,10 @@ const SHOP_DATA: Category[] = [
         name: "Airblush", 
         tagline: "Soft-focus sheer cheek tint", 
         price: 359, 
-        image: "/images/Rectangle 150.png", 
+        image: "/images/Rectangle 157.png", 
         colors: ["#F28C98"],
         variants: [
-            { name: "Doll", color: "#F28C98", image: "/images/Rectangle 150.png" }
+            { name: "Doll", color: "#F28C98", image: "/images/Rectangle 157.png" }
         ],
         weight: "2.5 g / 0.09 oz",
         whatItIs: "A soft-focus cheek tint that delivers a subtle, blurred matte flush for effortlessly polished skin.",
@@ -202,7 +202,7 @@ const SHOP_DATA: Category[] = [
         image: "/images/Rectangle 145.png", 
         colors: ["#F49F86"],
         variants: [
-            { name: "Warmth", color: "#F49F86", image: "/images/airblush-peached.jpg" }
+            { name: "Warmth", color: "#F49F86", image: "/images/Rectangle 145.png" }
         ],
         whatItIs: "A two-tone blush that blends effortlessly for a soft, naturally radiant flush.",
         whyWeLoveIt: "Blush with Benefits – our weightless formula is enriched with Macadamia Nut and Camellia extracts plus Vitamins E & D, giving your skin nourishment and protection while leaving a delicate, healthy glow.",
@@ -217,9 +217,9 @@ const SHOP_DATA: Category[] = [
         image: "/images/Rectangle 146.png", 
         colors: ["#C67D6F", "#F28C98", "#F49F86"],
         variants: [
-            { name: "Sunset", color: "#C67D6F", image: "/images/Rectangle 146.png" },
-            { name: "Petal", color: "#F28C98", image: "/images/Rectangle 146.png" },
-            { name: "Coral", color: "#F49F86", image: "/images/Rectangle 146.png" }
+            { name: "Sunset", color: "#C67D6F", image: "/images/Image 12-2-25 at 12.32 PM.jpeg" },
+            { name: "Petal", color: "#F28C98", image: "/images/Image 12-2-25 at 12.35 PM.jpeg" },
+            { name: "Coral", color: "#F49F86", image: "/images/Image 12-2-25 at 12.28 PM (1).jpeg" }
         ],
         weight: "40 g / 1.4 oz",
         whatItIs: "A long-lasting liquid blush with rich pigment that melts seamlessly into the skin. Its silky serum tint formula melts into the skin and sets for lasting color. Enriched with our signature Radiant Blend of flower-powered ingredients, it soothes, hydrates, and nourishes.",
@@ -251,9 +251,9 @@ const SHOP_DATA: Category[] = [
         image: "/images/Rectangle 145-1.png", 
         colors: ["#E8DCCA", "#E3C9B0", "#D67F68"],
         variants: [
-            { name: "Champagne", color: "#E8DCCA", image: "/images/Rectangle 145-1.png" },
-            { name: "Gold", color: "#E3C9B0", image: "/images/Rectangle 145-1.png" },
-            { name: "Bronze", color: "#D67F68", image: "/images/Rectangle 145-1.png" }
+            { name: "Stellar", color: "#E8DCCA", image: "/images/STELLAR.jpg" },
+            { name: "Saturn", color: "#E3C9B0", image: "/images/SATURN.jpg" },
+            { name: "Moondust", color: "#D67F68", image: "/images/MOONDUST.jpg" }
         ],
         weight: "40 g / 1.4 oz",
         whatItIs: "A lightweight liquid highlighter that nourishes the skin while delivering a soft, ethereal glow.",
@@ -294,7 +294,7 @@ const SHOP_DATA: Category[] = [
         image: "/images/Rectangle 144-1.png", 
         colors: ["#E3C9B0"],
         variants: [
-            { name: "Light", color: "#E3C9B0", image: "/images/Rectangle 80.png" }
+            { name: "Light", color: "#E3C9B0", image: "/images/Rectangle 144-1.png" }
         ],
         weight: "28 ml / 0.94 oz",
         whatItIs: "A multi-use tinted illuminator packed with 82% skincare ingredients, designed to enhance your complexion as a base, highlighter, bronzer, or body glow.",
@@ -527,7 +527,7 @@ const SHOP_DATA: Category[] = [
         image: "/images/Rectangle 144-7.png", 
         colors: ["#5D4037"],
         variants: [
-            { name: "Brown", color: "#5D4037", image: "/images/brows.jpg" }
+            { name: "Brown", color: "#5D4037", image: "/images/Rectangle 144-7.png" }
         ],
         weight: "4.5 g / 0.16 oz",
         whatItIs: "A long-wearing grooming gel that shapes and sets your brows with ease.",
@@ -544,7 +544,7 @@ const SHOP_DATA: Category[] = [
         image: "/images/Rectangle 144-8.png", 
         colors: ["#4A403A"],
         variants: [
-            { name: "Taupe", color: "#4A403A", image: "/images/brows.jpg" }
+            { name: "Taupe", color: "#4A403A", image: "/images/Rectangle 144-8.png" }
         ],
         weight: "7.5 g / 0.3 oz",
         whatItIs: "Lifebrow Micromarker is a long-wearing liquid brow detailing pen with an ultra-fine brush tip that delivers precise, natural, hair-like strokes. Its smudgeproof, sweatproof, and waterproof formula keeps your brows in place all day.",
@@ -561,7 +561,7 @@ const SHOP_DATA: Category[] = [
         image: "/images/Rectangle 146-3.png", 
         colors: ["#4A403A"],
         variants: [
-            { name: "Taupe", color: "#4A403A", image: "/images/brows.jpg" }
+            { name: "Taupe", color: "#4A403A", image: "/images/Rectangle 146-3.png" }
         ],
         weight: "0.08 g / 0.003 oz",
         whatItIs: "A precision pomade pencil designed to shape, define, and naturally fill in your brows.",

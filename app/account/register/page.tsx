@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
+import { supabase } from "@/lib/supabase"
 import { Chrome, Apple, Facebook, Twitter, Github, Linkedin, Instagram, Gitlab, Twitch } from "lucide-react"
 
 export default function RegisterPage() {
@@ -18,23 +19,60 @@ export default function RegisterPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      // 1. Sign up with Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+          },
+        },
+      })
+
+      if (error) throw error
+
+      // 2. Temporarily save email for the Verify Page to use
+      localStorage.setItem("pending_verification_email", formData.email)
+
       toast({
         title: "Account Created",
-        description: "Please verify your email address.",
+        description: "Please check your email for the verification code.",
         duration: 2000,
       })
+      
       router.push("/account/verify") 
-    }, 1500)
+    } catch (error: any) {
+      toast({
+        title: "Registration Failed",
+        description: error.message,
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleSSO = (provider: string) => {
-    toast({
-      title: `Connecting to ${provider}`,
-      description: "Redirecting to provider authentication...",
-      duration: 1500,
-    })
+  const handleSSO = async (provider: string) => {
+    setIsLoading(true)
+    try {
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: provider.toLowerCase() as any, // e.g., 'google', 'apple'
+            options: {
+                redirectTo: `${window.location.origin}/auth/callback`,
+            }
+        })
+        if (error) throw error
+    } catch (error: any) {
+        toast({
+            title: "SSO Error",
+            description: error.message,
+            variant: "destructive"
+        })
+        setIsLoading(false)
+    }
   }
 
   return (

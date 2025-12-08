@@ -14,7 +14,83 @@ import { useCart } from "@/app/context/cart-context"
 import { ProductModal } from "@/components/shop/product-modal"
 import type { Product } from "@/app/shop/page" 
 
-// --- 1. DATA ---
+// --- Mock Data for "The Drop" (Synced with Shop Page) ---
+const DROP_ITEMS: Product[] = [
+  {
+    id: "drop-1",
+    name: "Staygloss",
+    tagline: "a longwear high-shine lip gloss",
+    price: 395,
+    // Updated Image
+    image: "/images/Rectangle 141.png", 
+    colors: ["#A81C26", "#B55A55"],
+    variants: [
+        { name: "Sizzle", color: "#A81C26", image: "/images/Rectangle 87.png" },
+        { name: "Glaze", color: "#B55A55", image: "/images/Rectangle 87.png" }
+    ],
+    whatItIs: "A high-shine, longwear lip gloss that coats the lips in bold, vibrant color.",
+    whyWeLoveIt: "It’s the gloss that lasts. Enjoy all-day color, shine, and hydration—without the stickiness.",
+    claims: ["12-hour wear", "High-Shine", "Transfer-resistant"],
+    reviews: 540,
+    rating: 4.9
+  },
+  {
+    id: "drop-2",
+    name: "Cloud Bullet", 
+    tagline: "a weightless modern matte lipstick",
+    price: 495,
+    // Updated Image
+    image: "/images/Rectangle 131.png", 
+    colors: ["#B55A55", "#D67F68", "#E8A69D", "#A81C26"],
+    variants: [
+      { name: "Girl Crush", color: "#B55A55", image: "/images/Rectangle 129.png" },
+      { name: "Vacay", color: "#D67F68", image: "/images/Rectangle 129.png" },
+      { name: "Milkshake", color: "#E8A69D", image: "/images/Rectangle 129.png" },
+      { name: "Major", color: "#A81C26", image: "/images/Rectangle 129.png" }
+    ],
+    whatItIs: "A modern matte lipstick reinvented for everyday wear.",
+    whyWeLoveIt: "Each shade melts into the lips with a velvety finish that never feels heavy.",
+    claims: ["Non-drying", "High impact color", "Paraben-free"],
+    reviews: 3200,
+    rating: 4.9
+  },
+  {
+    id: "drop-3",
+    name: "Eyeshadow palette",
+    tagline: "Effortless shades that enhance your natural look",
+    price: 400,
+    // Updated Image
+    image: "/images/Rectangle 144-6.png",
+    colors: ["#A88B7D"],
+    variants: [
+        { name: "Day", color: "#A88B7D", image: "/images/eyes.jpg" }
+    ],
+    whatItIs: "A four-shade eyeshadow palette with versatile tones.",
+    whyWeLoveIt: "Enriched with Vitamin E for hydration and comfort.",
+    claims: ["Easy blend", "Long wear"],
+    reviews: 180,
+    rating: 4.5
+  },
+  {
+    id: "drop-4",
+    name: "Lash Seeker",
+    tagline: "a 12-hour wear waterproof micromascara",
+    price: 359,
+    // Updated Image
+    image: "/images/Rectangle 146-2.png", 
+    colors: ["#1A1A1A"],
+    variants: [
+        { name: "Black", color: "#1A1A1A", image: "/images/eyes.jpg" }
+    ],
+    whatItIs: "A waterproof mascara with 12-hour wear and a tiny-but-mighty wand.",
+    whyWeLoveIt: "The precision brush makes defining your lashes super simple.",
+    claims: ["Waterproof", "Lengthening", "Smudge-proof"],
+    reviews: 450,
+    rating: 4.8
+  }
+]
+
+// --- Other Data ---
 const STAYGLOSS_VARIANTS = [
   { id: 101, formula: "Chiffon", shade: "carnation pink", price: 395, image: "./images/Rectangle 87.png" },
   { id: 102, formula: "Cashmere", shade: "dusty pink", price: 395, image: "./images/Rectangle 91.png" },

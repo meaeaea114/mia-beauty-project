@@ -1,28 +1,37 @@
 "use client"
 
 import * as React from "react"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
+import { supabase } from "@/lib/supabase" 
 
 export default function VerifyPage() {
   const [code, setCode] = useState(["", "", "", "", "", ""])
+  const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
   const router = useRouter()
   const { toast } = useToast()
+
+  // Retrieve email from storage when component mounts
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("pending_verification_email")
+    if (storedEmail) {
+        setEmail(storedEmail)
+    } else {
+        toast({ title: "Error", description: "No pending registration found.", variant: "destructive" })
+        router.push("/account/register")
+    }
+  }, [])
 
   const handleChange = (index: number, value: string) => {
     if (isNaN(Number(value))) return
     const newCode = [...code]
     newCode[index] = value
     setCode(newCode)
-
-    // Auto-focus next input
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus()
-    }
+    if (value && index < 5) inputRefs.current[index + 1]?.focus()
   }
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -36,23 +45,49 @@ export default function VerifyPage() {
     setIsLoading(true)
     const fullCode = code.join("")
 
-    setTimeout(() => {
-      setIsLoading(false)
-      if (fullCode.length === 6) {
-        toast({
-          title: "Email Verified",
-          description: "Your account is now active.",
-          duration: 2000,
+    try {
+        const { data, error } = await supabase.auth.verifyOtp({
+            email,
+            token: fullCode,
+            type: 'signup'
         })
+
+        if (error) throw error
+
+        toast({
+            title: "Email Verified",
+            description: "Your account is now active.",
+            duration: 2000,
+        })
+        
+        // Clear temporary email
+        localStorage.removeItem("pending_verification_email")
+        
+        // Redirect to login or straight to home if verifyOtp logs them in automatically (it usually does)
         router.push("/account/login")
-      } else {
+        
+    } catch (error: any) {
         toast({
-          title: "Invalid Code",
-          description: "Please enter the 6-digit code sent to your email.",
-          variant: "destructive",
+            title: "Verification Failed",
+            description: error.message || "Invalid code.",
+            variant: "destructive",
         })
-      }
-    }, 1500)
+    } finally {
+        setIsLoading(false)
+    }
+  }
+
+  const resendCode = async () => {
+    if(!email) return
+    const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+    })
+    if(error) {
+        toast({ title: "Error", description: error.message, variant: "destructive"})
+    } else {
+        toast({ title: "Code Resent", description: "Check your email inbox." })
+    }
   }
 
   return (
@@ -63,7 +98,7 @@ export default function VerifyPage() {
             Check your email
           </h1>
           <p className="text-sm text-stone-500 mb-8 text-center max-w-xs leading-relaxed">
-            We've sent a 6-digit verification code to your email address. Enter it below to activate your account.
+            We've sent a 6-digit verification code to <strong>{email}</strong>. Enter it below to activate your account.
           </p>
 
           <form onSubmit={handleVerify} className="w-full flex flex-col items-center gap-6">
@@ -90,7 +125,7 @@ export default function VerifyPage() {
                {isLoading ? "Verifying..." : "Verify Code"}
              </Button>
 
-             <button type="button" className="text-xs text-stone-400 uppercase tracking-widest hover:text-[#AB462F] transition-colors">
+             <button type="button" onClick={resendCode} className="text-xs text-stone-400 uppercase tracking-widest hover:text-[#AB462F] transition-colors">
                Resend Code
              </button>
           </form>

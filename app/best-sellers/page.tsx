@@ -19,11 +19,11 @@ const BEST_SELLERS: Product[] = [
     image: "/images/Rectangle 131.png", 
     colors: ["#B55A55", "#D67F68", "#E8A69D", "#A81C26", "#944E45"],
     variants: [
-      { name: "Girl Crush", color: "#B55A55", image: "/images/Rectangle 129.png" },
-      { name: "Vacay", color: "#D67F68", image: "/images/Rectangle 129.png" },
-      { name: "Milkshake", color: "#E8A69D", image: "/images/Rectangle 129.png" },
-      { name: "Major", color: "#A81C26", image: "/images/Rectangle 129.png" },
-      { name: "Baked", color: "#944E45", image: "/images/Rectangle 129.png" }
+      { name: "Girl Crush", color: "#B55A55", image: "/images/Girl Crush.png" },
+      { name: "Brunette", color: "#D67F68", image: "/images/Brunette.png" },
+      { name: "Nudist", color: "#E8A69D", image: "/images/Nudist.png" },
+      { name: "Casual", color: "#A81C26", image: "/images/Casual.png" },
+      { name: "Baked", color: "#944E45", image: "/images/Baked.png" }
     ],
     weight: "3.2 g / 0.11 oz",
     whatItIs: "A modern matte lipstick reinvented for everyday wear. Fluffmatte glides on effortlessly, delivering smooth, even pigment with a second-skin feel.",
@@ -37,12 +37,10 @@ const BEST_SELLERS: Product[] = [
     name: "Airblush", 
     tagline: "Soft-focus sheer cheek tint", 
     price: 359, 
-    image: "/images/Rectangle 150.png", 
+    image: "/images/Rectangle 157.png", 
     colors: ["#F28C98", "#F49F86", "#C67D6F"],
     variants: [
-        { name: "Doll", color: "#F28C98", image: "/images/airblush-doll.jpg" },
-        { name: "Peached", color: "#F49F86", image: "/images/airblush-peached.jpg" },
-        { name: "Moon", color: "#C67D6F", image: "/images/airblush-moon.jpg" }
+        { name: "Doll", color: "#F28C98", image: "/images/Rectangle 157.png" },
     ],
     weight: "2.5 g / 0.09 oz",
     whatItIs: "A soft-focus cheek tint that delivers a subtle, blurred matte flush for effortlessly polished skin.",
@@ -59,7 +57,7 @@ const BEST_SELLERS: Product[] = [
     image: "/images/Rectangle 145-3.png", 
     colors: ["#E3C9B0"],
     variants: [
-        { name: "Invisible", color: "#E3C9B0", image: "/images/Rectangle 80.png" }
+        { name: "Invisible", color: "#E3C9B0", image: "/images/Rectangle 145-3.png" }
     ],
     weight: "80 g / 50 ml",
     whatItIs: "A lightweight, invisible SPF 50+ PA+++ sunscreen in a serum gel texture. No white cast, no heaviness—just all-day sun protection.",
@@ -76,8 +74,8 @@ const BEST_SELLERS: Product[] = [
     image: "/images/Rectangle 133.png", 
     colors: ["#E8A69D", "#D67F68"],
     variants: [
-        { name: "Cranberry", color: "#E8A69D", image: "/images/Rectangle 87.png" },
-        { name: "Tarragon", color: "#D67F68", image: "/images/Rectangle 87.png" }
+        { name: "Gumamela", color: "#E8A69D", image: "/images/GUMAMELA.png" },
+        { name: "Tart", color: "#D67F68", image: "/images/TART.png" }
     ],
     weight: "2.3 g / 0.08 oz",
     whatItIs: "A high-shine gloss stick that glides on like a balm, delivering rich pigment and an ultra-luminous finish.",
@@ -94,7 +92,7 @@ const BEST_SELLERS: Product[] = [
     image: "/images/Rectangle 144-3.png", 
     colors: ["#FDF3E3"],
     variants: [
-        { name: "Standard", color: "#FDF3E3", image: "/images/dreamcream.jpg" }
+        { name: "Standard", color: "#FDF3E3", image: "/images/Rectangle 144-3.png" }
     ],
     weight: "140 g / 50 ml",
     whatItIs: "A serum gel cream that instantly hydrates and revitalizes the skin, leaving a luminous, healthy glow.",
@@ -111,8 +109,8 @@ const BEST_SELLERS: Product[] = [
     image: "/images/Rectangle 144-7.png", 
     colors: ["#5D4037", "#262626"],
     variants: [
-        { name: "Brown", color: "#5D4037", image: "/images/brows.jpg" },
-        { name: "Black", color: "#262626", image: "/images/brows.jpg" }
+        { name: "Brown", color: "#5D4037", image: "/images/Rectangle 144-7.png" },
+        { name: "Black", color: "#262626", image: "/images/Rectangle 144-7.png" }
     ],
     weight: "4.5 g / 0.16 oz",
     whatItIs: "A long-wearing grooming gel that shapes and sets your brows with ease.",

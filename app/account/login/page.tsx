@@ -6,7 +6,9 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
-import { Chrome, Apple, Facebook, Twitter, Github, Eye, EyeOff, ArrowRight } from "lucide-react"
+import { Chrome, Apple, Facebook, Twitter, Mail, Eye, EyeOff, ArrowRight } from "lucide-react" 
+// ASSUMPTION: Supabase is imported here
+import { supabase } from "@/lib/supabase" 
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({ email: "", password: "" })
@@ -16,10 +18,11 @@ export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
 
-  // --- 1. PHP/XAMPP CONNECTION LOGIC ---
+  // --- 1. PHP/XAMPP CONNECTION LOGIC (UNCHANGED) ---
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    // ... (Original PHP/XAMPP logic remains here) ...
 
     try {
         // NOTE: Ensure your XAMPP Apache server is running.
@@ -79,12 +82,70 @@ export default function LoginPage() {
     }
   }
 
-  const handleSSO = (provider: string) => {
+// --- 2. UPDATED SSO/PASSWORDLESS LOGIC ---
+  const handleSSO = async (provider: string) => {
+    
+    // A. Handle Magic Link Flow (Yes/No Verification)
+    if (provider === 'Email') {
+      if (!formData.email) {
+        return toast({
+          title: "Email Required",
+          description: "Please enter your email in the field above to receive a login link.",
+          variant: "destructive",
+        })
+      }
+      setIsLoading(true)
+
+      try {
+        const { error } = await supabase.auth.signInWithOtp({
+          email: formData.email,
+          options: {
+            shouldCreateUser: false, 
+            // Removed: channel: 'email' (to revert to magic link)
+            emailRedirectTo: '/', // Redirect user to home page after clicking link
+          }
+        })
+        
+        if (error) throw error
+
+        toast({
+          title: "Confirmation Sent!",
+          description: `Check your inbox at ${formData.email} and click the link to sign in.`,
+          duration: 4000,
+        })
+        
+        // NO REDIRECTION needed here, the user waits for the email.
+
+      } catch (error: any) {
+        toast({
+          title: "Login Failed",
+          description: error.message || "Could not send link. Account may not exist.",
+          variant: "destructive",
+        })
+      } finally {
+        setIsLoading(false)
+      }
+      return
+    }
+    
+    // B. Handle Standard OAuth (Google, Facebook, etc.)
     toast({
       title: `Connecting to ${provider}`,
       description: "Redirecting to secure authentication...",
       duration: 1500,
     })
+    
+    try {
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: provider.toLowerCase() as any,
+            options: {
+                redirectTo: `${window.location.origin}/auth/callback`,
+            }
+        })
+        if (error) throw error
+    } catch (error: any) {
+        toast({ title: "SSO Error", description: error.message, variant: "destructive" })
+    }
   }
 
   return (
@@ -169,8 +230,9 @@ export default function LoginPage() {
                 <Button variant="outline" size="icon" className="w-full h-10 rounded-lg border-stone-200 dark:border-stone-800 hover:bg-stone-50 hover:scale-105 transition-transform" onClick={() => handleSSO('Twitter')}>
                     <Twitter className="w-4 h-4 text-sky-500" />
                 </Button>
-                <Button variant="outline" size="icon" className="w-full h-10 rounded-lg border-stone-200 dark:border-stone-800 hover:bg-stone-50 hover:scale-105 transition-transform" onClick={() => handleSSO('GitHub')}>
-                    <Github className="w-4 h-4" />
+                {/* Email/Magic Link Button */}
+                <Button variant="outline" size="icon" className="w-full h-10 rounded-lg border-stone-200 dark:border-stone-800 hover:bg-stone-50 hover:scale-105 transition-transform" onClick={() => handleSSO('Email')}>
+                    <Mail className="w-4 h-4" />
                 </Button>
             </div>
           </div>
