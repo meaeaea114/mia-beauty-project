@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<catalog>
+    <product id="xml-1">
+        <name>Velvet Kiss</name>
+        <tagline>Limited Edition Matte</tagline>
+        <price>450</price>
+        <category>Lips</category>
+        <image>/images/Rectangle 131.png</image>
+        <description>A limited edition red that suits every skin tone.</description>
+    </product>
+    <product id="xml-2">
+        <name>Cloud Paint</name>
+        <tagline>Soft Cheek Tint</tagline>
+        <price>359</price>
+        <category>Cheeks</category>
+        <image>/images/Rectangle 150.png</image>
+        <description>Soft-focus sheer cheek tint for a natural flush.</description>
+    </product>
+    <product id="xml-3">
+        <name>Sun Shield</name>
+        <tagline>Invisible Protection</tagline>
+        <price>350</price>
+        <category>Face</category>
+        <image>/images/Rectangle 145-3.png</image>
+        <description>Invisible SPF 50+ serum for daily protection.</description>
+    </product>
+</catalog>

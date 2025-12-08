@@ -1,11 +1,13 @@
 "use client"
 
 import * as React from "react"
-import { useState } from "react"
+import { useState, useMemo } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { ProductModal } from "@/components/shop/product-modal"
 import { useCart } from "@/app/context/cart-context"
+import { Search, X, Star } from "lucide-react"
 
 // --- Types ---
 export type Product = {
@@ -14,15 +16,13 @@ export type Product = {
   tagline: string
   price: number
   image: string
-  // 'variants' is now the primary source for shade data
   variants?: {
     name: string
     color: string
     image: string
   }[] 
-  colors: string[] // Kept for backward compatibility
+  colors: string[] 
   
-  // Detailed Content Fields
   weight?: string
   whatItIs?: string
   whyWeLoveIt?: string
@@ -32,6 +32,8 @@ export type Product = {
   claims?: string[]
   reviews?: number
   rating?: number
+  // Added helper for search
+  category?: string
 }
 
 type Category = {
@@ -156,7 +158,7 @@ const SHOP_DATA: Category[] = [
         tagline: "High-shine longwear lip gloss", 
         price: 595, 
         image: "/images/Rectangle 141.png", 
-        colors: ["#A81C26", "#B55A55"],
+        colors: ["#A81C26", "#B55A55"], 
         variants: [
             { name: "Sizzle", color: "#A81C26", image: "/images/Rectangle 141.png" },
             { name: "Glaze", color: "#B55A55", image: "/images/Rectangle 141.png" }
@@ -601,21 +603,29 @@ const ShopCard = ({ product, onClick, onAdd }: { product: Product, onClick: () =
           <h3 className="font-bold text-base uppercase tracking-tight text-foreground">{product.name}</h3>
           <span className="text-sm font-semibold text-foreground">₱{product.price}</span>
         </div>
+        
+        {/* Rating Display */}
+        <div className="flex items-center gap-1 text-[10px] text-muted-foreground mb-0.5">
+           <div className="flex text-[#AB462F]">
+             {[...Array(5)].map((_, i) => (
+               <Star key={i} className={`w-3 h-3 ${i < Math.floor(product.rating || 5) ? "fill-current" : "opacity-30"}`} />
+             ))}
+           </div>
+           <span>({product.reviews})</span>
+        </div>
+
         <p className="text-xs text-muted-foreground line-clamp-1">{product.tagline}</p>
         
         <div className="flex gap-1 mt-1 h-3">
           {product.variants ? (
-            // Prioritize Variants if available
             product.variants.map((v, i) => (
               <div key={i} className="w-3 h-3 rounded-full border border-stone-200 dark:border-white/20" style={{ backgroundColor: v.color }} />
             ))
           ) : (
-            // Fallback to colors
             product.colors.map((c, i) => (
                <div key={i} className="w-3 h-3 rounded-full border border-stone-200 dark:border-white/20" style={{ backgroundColor: c }} />
             ))
           )}
-          {/* Add plus indicator if needed, though usually we show all dots here */}
         </div>
       </div>
     </div>
@@ -626,10 +636,57 @@ export default function ShopPage() {
   const { toast } = useToast()
   const { addItem } = useCart()
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  
+  // --- SEARCH LOGIC IMPLEMENTATION ---
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const searchQuery = searchParams.get("q")
+
+  // 1. Flatten all products from all categories and attach their category name
+  const allProducts = useMemo(() => {
+    return SHOP_DATA.flatMap(category => 
+      category.items.map(item => ({
+        ...item,
+        category: category.title // e.g. "LIPS", "FACE"
+      }))
+    )
+  }, [])
+
+  // 2. Filter products based on search query
+  const filteredProducts = useMemo(() => {
+    if (!searchQuery) return []
+    const lowerQuery = searchQuery.toLowerCase().trim()
+    
+    // EDGE CASE: "Best Seller" search (returns high rated/reviewed items)
+    if (lowerQuery.includes("best") || lowerQuery.includes("seller")) {
+        return allProducts.filter(p => (p.rating || 0) >= 4.8 && (p.reviews || 0) > 500)
+    }
+
+    // EDGE CASE: "Sets" search (returns duos/palettes)
+    if (lowerQuery.includes("set") || lowerQuery.includes("kit")) {
+        return allProducts.filter(p => 
+            p.name.toLowerCase().includes("duo") || 
+            p.name.toLowerCase().includes("palette") ||
+            p.tagline.toLowerCase().includes("duo")
+        )
+    }
+
+    // General Search Logic
+    return allProducts.filter(product => 
+      product.name.toLowerCase().includes(lowerQuery) ||
+      product.tagline.toLowerCase().includes(lowerQuery) ||
+      (product.category && product.category.toLowerCase().includes(lowerQuery)) ||
+      (product.whatItIs && product.whatItIs.toLowerCase().includes(lowerQuery))
+    )
+  }, [searchQuery, allProducts])
+
+  // Clear search handler
+  const handleClearSearch = () => {
+    router.push("/shop")
+  }
 
   // Direct Add Functionality
   const handleAddToCart = (product: Product) => {
-    // If variants exist, pick the first one as default
     const defaultVariant = product.variants ? product.variants[0] : null;
     
     addItem({
@@ -649,7 +706,6 @@ export default function ShopPage() {
   return (
     <div className="w-full bg-transparent text-foreground font-sans selection:bg-[#AB462F] selection:text-white pt-24 pb-20">
       
-      {/* Product Modal - Make sure you are using the latest product-modal.tsx provided previously that handles 'variants' */}
       <ProductModal 
         isOpen={!!selectedProduct} 
         onClose={() => setSelectedProduct(null)} 
@@ -658,65 +714,107 @@ export default function ShopPage() {
 
       <div className="container mx-auto px-4 md:px-8">
         
-        <div className="mb-16 text-center max-w-2xl mx-auto">
-          <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase mb-4 text-foreground">
-            Shop All
-          </h1>
-          <p className="text-lg text-muted-foreground font-light">
-            Everyday beauty essentials designed for real life.
-          </p>
-        </div>
-
-        <div className="space-y-32">
-          {SHOP_DATA.map((category) => (
-            <section key={category.title} id={category.title.toLowerCase()} className="scroll-mt-28">
-              
-              {/* --- Category Header (Video/Image Banner) --- */}
-              <div className="relative w-full h-[300px] md:h-[400px] mb-12 rounded-[24px] overflow-hidden group shadow-lg">
-                  {category.mediaType === 'video' ? (
-                       <video 
-                          src={category.media} 
-                          autoPlay 
-                          loop 
-                          muted 
-                          playsInline 
-                          className="w-full h-full object-cover opacity-90 transition-transform duration-1000 group-hover:scale-105" 
-                       />
-                  ) : (
-                       <img 
-                          src={category.media} 
-                          alt={category.title} 
-                          className="w-full h-full object-cover opacity-90 transition-transform duration-1000 group-hover:scale-105" 
-                       />
-                  )}
-                  {/* Overlay */}
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-500" />
-                  
-                  {/* Text Content */}
-                  <div className="absolute inset-0 flex flex-col justify-center items-center text-center p-8">
-                      <h2 className="text-6xl md:text-8xl font-black text-white uppercase tracking-tighter mb-4 drop-shadow-xl">
-                          {category.title}
-                      </h2>
-                      <p className="text-white/95 text-lg md:text-xl font-medium max-w-xl leading-relaxed drop-shadow-md">
-                          {category.description}
-                      </p>
-                  </div>
+        {/* --- SEARCH RESULTS VIEW (Only shows if there is a query) --- */}
+        {searchQuery ? (
+           <div className="min-h-[60vh]">
+              <div className="flex flex-col border-b border-stone-200 dark:border-white/10 pb-8 mb-12">
+                 <div className="flex justify-between items-end mb-4">
+                    <div>
+                        <span className="text-xs font-bold tracking-widest uppercase text-stone-500 mb-2 block">Search Results For</span>
+                        <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase text-foreground">
+                        "{searchQuery}"
+                        </h1>
+                    </div>
+                    <button 
+                      onClick={handleClearSearch}
+                      className="text-xs font-bold tracking-widest uppercase hover:text-[#AB462F] transition-colors mb-2 flex items-center gap-2"
+                    >
+                      <X className="w-4 h-4" /> Clear
+                    </button>
+                 </div>
               </div>
 
-              {/* Product Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-12">
-                {category.items.map((product) => (
-                  <ShopCard 
-                    key={product.id} 
-                    product={product} 
-                    onAdd={handleAddToCart}
-                    onClick={() => setSelectedProduct(product)} 
-                  />
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
+              {filteredProducts.length > 0 ? (
+                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    {filteredProducts.map((product) => (
+                      <ShopCard 
+                        key={product.id} 
+                        product={product} 
+                        onAdd={handleAddToCart}
+                        onClick={() => setSelectedProduct(product)} 
+                      />
+                    ))}
+                 </div>
+              ) : (
+                 <div className="flex flex-col items-center justify-center h-[400px] text-center space-y-6">
+                    <Search className="w-12 h-12 text-stone-300" />
+                    <div className="space-y-2">
+                        <p className="text-2xl text-stone-500 font-light">No results found for "{searchQuery}"</p>
+                        <p className="text-sm text-muted-foreground">Try checking for typos or using broader terms like "Lip", "Face", or "Set".</p>
+                    </div>
+                    <Button variant="outline" onClick={handleClearSearch}>View All Products</Button>
+                 </div>
+              )}
+           </div>
+        ) : (
+          /* --- STANDARD SHOP ALL VIEW (Default) --- */
+          <div className="space-y-32">
+            <div className="mb-16 text-center max-w-2xl mx-auto">
+              <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase mb-4 text-foreground">
+                Shop All
+              </h1>
+              <p className="text-lg text-muted-foreground font-light">
+                Everyday beauty essentials designed for real life.
+              </p>
+            </div>
+
+            {SHOP_DATA.map((category) => (
+              <section key={category.title} id={category.title.toLowerCase()} className="scroll-mt-28">
+                
+                {/* Category Banner */}
+                <div className="relative w-full h-[300px] md:h-[400px] mb-12 rounded-[24px] overflow-hidden group shadow-lg">
+                    {category.mediaType === 'video' ? (
+                         <video 
+                            src={category.media} 
+                            autoPlay 
+                            loop 
+                            muted 
+                            playsInline 
+                            className="w-full h-full object-cover opacity-90 transition-transform duration-1000 group-hover:scale-105" 
+                         />
+                    ) : (
+                         <img 
+                            src={category.media} 
+                            alt={category.title} 
+                            className="w-full h-full object-cover opacity-90 transition-transform duration-1000 group-hover:scale-105" 
+                         />
+                    )}
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-500" />
+                    <div className="absolute inset-0 flex flex-col justify-center items-center text-center p-8">
+                        <h2 className="text-6xl md:text-8xl font-black text-white uppercase tracking-tighter mb-4 drop-shadow-xl">
+                            {category.title}
+                        </h2>
+                        <p className="text-white/95 text-lg md:text-xl font-medium max-w-xl leading-relaxed drop-shadow-md">
+                            {category.description}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Product Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-12">
+                  {category.items.map((product) => (
+                    <ShopCard 
+                      key={product.id} 
+                      product={product} 
+                      onAdd={handleAddToCart}
+                      onClick={() => setSelectedProduct(product)} 
+                    />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        )}
 
       </div>
     </div>
