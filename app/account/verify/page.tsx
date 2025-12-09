@@ -91,7 +91,8 @@ export default function VerifyPage() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center w-full px-4 pt-32 pb-12">
+    // MODIFIED: Added bg-transparent to ensure background texture shows
+    <div className="flex flex-col items-center justify-center w-full px-4 pt-32 pb-12 bg-transparent">
         <div className="w-full max-w-[400px] flex flex-col items-center">
           
           <h1 className="text-3xl md:text-4xl font-normal tracking-tight mb-3 text-center">

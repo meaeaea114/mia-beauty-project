@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<catalog>
+  <category name="LIPS" description="Swipe on a layer of color that feels like nothing but looks like everything.">
+    <product id="l1">
+      <name>Fluffmatte</name>
+      <tagline>Weightless modern matte lipstick</tagline>
+      <price>399</price>
+      <image>/images/Rectangle 131.png</image>
+      <rating>4.9</rating>
+      <reviews>3200</reviews>
+      <variants>
+        <variant color="#B55A55">Girl Crush</variant>
+        <variant color="#D67F68">Brunette</variant>
+        <variant color="#E8A69D">Nudist</variant>
+        <variant color="#A81C26">Casual</variant>
+        <variant color="#944E45">Baked</variant>
+      </variants>
+    </product>
+    <product id="l4">
+      <name>Juicetint</name>
+      <tagline>Hydrating soft lip tint</tagline>
+      <price>299</price>
+      <image>/images/Rectangle 134.png</image>
+      <rating>4.8</rating>
+      <reviews>170</reviews>
+      <variants>
+        <variant color="#A81C26">Lychee</variant>
+        <variant color="#B55A55">Strawberry</variant>
+        <variant color="#D67F68">Tea Rose</variant>
+        <variant color="#944E45">Mulberry</variant>
+      </variants>
+    </product>
+    <product id="l2">
+      <name>Fluffbalm</name>
+      <tagline>Moisturizing matte blotted lipstick</tagline>
+      <price>399</price>
+      <image>/images/Rectangle 131.png</image>
+      <rating>4.7</rating>
+      <reviews>890</reviews>
+      <variants>
+        <variant color="#D88A7A">Perfect Nude</variant>
+        <variant color="#C27970">Perfect Pink</variant>
+        <variant color="#B55A55">Perfect Mauve</variant>
+      </variants>
+    </product>
+    <product id="l3">
+      <name>Glidegloss</name>
+      <tagline>Plumping high shine gloss stick</tagline>
+      <price>350</price>
+      <image>/images/Rectangle 133.png</image>
+      <rating>4.6</rating>
+      <reviews>420</reviews>
+      <variants>
+        <variant color="#E8A69D">Gumamela</variant>
+        <variant color="#D67F68">Tart</variant>
+      </variants>
+    </product>
+    <product id="l5">
+      <name>Lip Dip</name>
+      <tagline>Whipped matte lip cream</tagline>
+      <price>299</price>
+      <image>/images/Rectangle 129-1.png</image>
+      <rating>4.8</rating>
+      <reviews>1200</reviews>
+      <variants>
+        <variant color="#944E45">Nonchalant</variant>
+        <variant color="#B55A55">Nougat</variant>
+        <variant color="#A81C26">Dragon</variant>
+      </variants>
+    </product>
+    <product id="l6">
+      <name>Staygloss</name>
+      <tagline>High-shine longwear lip gloss</tagline>
+      <price>595</price>
+      <image>/images/Rectangle 141.png</image>
+      <rating>4.9</rating>
+      <reviews>540</reviews>
+      <variants>
+        <variant color="#A81C26">Lavish</variant>
+        <variant color="#B55A55">Dainty</variant>
+      </variants>
+    </product>
+  </category>
+
+  <category name="CHEEKS" description="Get that natural, sun-kissed flush with our blendable, breathable cheek tints.">
+    <product id="c1">
+      <name>Airblush</name>
+      <tagline>Soft-focus sheer cheek tint</tagline>
+      <price>359</price>
+      <image>/images/Rectangle 157.png</image>
+      <rating>4.8</rating>
+      <reviews>1540</reviews>
+      <variants>
+        <variant color="#F28C98">Doll</variant>
+      </variants>
+    </product>
+    <product id="c2">
+      <name>Blush Duo</name>
+      <tagline>Soft, healthy flush</tagline>
+      <price>400</price>
+      <image>/images/Rectangle 145.png</image>
+      <rating>4.7</rating>
+      <reviews>230</reviews>
+      <variants>
+        <variant color="#F49F86">Warmth</variant>
+      </variants>
+    </product>
+    <product id="c3">
+      <name>Blush On</name>
+      <tagline>Long-wearing cheek pigment</tagline>
+      <price>359</price>
+      <image>/images/Rectangle 146.png</image>
+      <rating>4.9</rating>
+      <reviews>670</reviews>
+      <variants>
+        <variant color="#C67D6F">Sunset</variant>
+        <variant color="#F28C98">Petal</variant>
+        <variant color="#F49F86">Coral</variant>
+      </variants>
+    </product>
+    <product id="c4">
+      <name>Bronzer Duo</name>
+      <tagline>Sun-kissed warmth</tagline>
+      <price>400</price>
+      <image>/images/Rectangle 144.png</image>
+      <rating>4.5</rating>
+      <reviews>150</reviews>
+      <variants>
+        <variant color="#8D5E4D">Tan</variant>
+      </variants>
+    </product>
+    <product id="c5">
+      <name>Glow On</name>
+      <tagline>Light catching liquid highlighter</tagline>
+      <price>359</price>
+      <image>/images/Rectangle 145-1.png</image>
+      <rating>4.6</rating>
+      <reviews>410</reviews>
+      <variants>
+        <variant color="#E8DCCA">Stellar</variant>
+        <variant color="#E3C9B0">Saturn</variant>
+        <variant color="#D67F68">Moondust</variant>
+      </variants>
+    </product>
+  </category>
+
+  <category name="FACE" description="Your skin, but better. Lightweight bases, serums, and skincare essentials.">
+    <product id="f1">
+      <name>Tinted Moisturizer</name>
+      <tagline>Oil-free base</tagline>
+      <price>430</price>
+      <image>/images/Rectangle 147.png</image>
+      <rating>4.8</rating>
+      <reviews>820</reviews>
+      <variants>
+        <variant color="#EBEBEB">Porcelain</variant>
+      </variants>
+    </product>
+    <product id="f2">
+      <name>Base Booster</name>
+      <tagline>Skin-blurring tinted complexion</tagline>
+      <price>500</price>
+      <image>/images/Rectangle 144-1.png</image>
+      <rating>4.5</rating>
+      <reviews>340</reviews>
+      <variants>
+         <variant color="#E3C9B0">Light</variant>
+      </variants>
+    </product>
+    <product id="f7">
+      <name>The Blotting Powder</name>
+      <tagline>Oil-absorbing sheer powder</tagline>
+      <price>499</price>
+      <image>/images/Rectangle 144-2.png</image>
+      <rating>4.7</rating>
+      <reviews>210</reviews>
+      <variants>
+         <variant color="#FFFDD0">Translucent</variant>
+      </variants>
+    </product>
+    <product id="f5">
+      <name>The Concealer</name>
+      <tagline>Brightening and lifting liquid</tagline>
+      <price>339</price>
+      <image>/images/Rectangle 145-2.png</image>
+      <rating>4.6</rating>
+      <reviews>530</reviews>
+      <variants>
+         <variant color="#EBEBEB">Fair</variant>
+      </variants>
+    </product>
+    <product id="f6">
+      <name>The Multistick</name>
+      <tagline>Skin-enhancing complexion stick</tagline>
+      <price>399</price>
+      <image>/images/Rectangle 146-1.png</image>
+      <rating>4.8</rating>
+      <reviews>190</reviews>
+      <variants>
+         <variant color="#E3C9B0">Oat</variant>
+      </variants>
+    </product>
+    <product id="f3">
+      <name>Dream Cream</name>
+      <tagline>Supercharged hydrating serum</tagline>
+      <price>500</price>
+      <image>/images/Rectangle 144-3.png</image>
+      <rating>5.0</rating>
+      <reviews>450</reviews>
+      <variants>
+         <variant color="#FDF3E3">Standard</variant>
+      </variants>
+    </product>
+    <product id="s1">
+      <name>Dream Serum</name>
+      <tagline>Universal daily serum</tagline>
+      <price>500</price>
+      <image>/images/Rectangle 144-4.png</image>
+      <rating>4.9</rating>
+      <reviews>80</reviews>
+      <variants>
+         <variant color="#FDF3E3">Standard</variant>
+      </variants>
+    </product>
+    <product id="f4">
+      <name>Sun Safe</name>
+      <tagline>Invisible SPF 50+ serum</tagline>
+      <price>350</price>
+      <image>/images/Rectangle 145-3.png</image>
+      <rating>5.0</rating>
+      <reviews>950</reviews>
+      <variants>
+         <variant color="#E3C9B0">Invisible</variant>
+      </variants>
+    </product>
+  </category>
+
+  <category name="EYES" description="Captivate at a glance. From precise liners to volumizing mascaras.">
+    <product id="e1">
+      <name>Easyline</name>
+      <tagline>12-hour wear ultra precise liner</tagline>
+      <price>299</price>
+      <image>/images/Rectangle 144-5.png</image>
+      <rating>4.8</rating>
+      <reviews>310</reviews>
+      <variants>
+         <variant color="#1A1A1A">Ink</variant>
+      </variants>
+    </product>
+    <product id="e2">
+      <name>Eyecrayon</name>
+      <tagline>Do-it-all eyeshadow stick</tagline>
+      <price>299</price>
+      <image>/images/Rectangle 145-4.png</image>
+      <rating>4.7</rating>
+      <reviews>240</reviews>
+      <variants>
+         <variant color="#8D5E4D">Terra</variant>
+      </variants>
+    </product>
+    <product id="e3">
+      <name>Eyeshadow Palette</name>
+      <tagline>Effortless shades</tagline>
+      <price>400</price>
+      <image>/images/Rectangle 144-6.png</image>
+      <rating>4.5</rating>
+      <reviews>180</reviews>
+      <variants>
+         <variant color="#A88B7D">Day</variant>
+      </variants>
+    </product>
+    <product id="e4">
+      <name>Lash Seeker</name>
+      <tagline>12-hour wear waterproof mascara</tagline>
+      <price>359</price>
+      <image>/images/Rectangle 146-2.png</image>
+      <rating>4.8</rating>
+      <reviews>450</reviews>
+      <variants>
+         <variant color="#1A1A1A">Black</variant>
+      </variants>
+    </product>
+    <product id="e5">
+      <name>Lashlift</name>
+      <tagline>Curling, lifting mascara</tagline>
+      <price>359</price>
+      <image>/images/Rectangle 147-1.png</image>
+      <rating>4.7</rating>
+      <reviews>320</reviews>
+      <variants>
+         <variant color="#1A1A1A">Black</variant>
+      </variants>
+    </product>
+    <product id="e6">
+      <name>Velvet Liner</name>
+      <tagline>Precise definition</tagline>
+      <price>445</price>
+      <image>/images/Rectangle 70.png</image>
+      <rating>4.6</rating>
+      <reviews>210</reviews>
+      <variants>
+         <variant color="#5D4037">Brown</variant>
+      </variants>
+    </product>
+  </category>
+
+  <category name="BROWS" description="Frame your face with ease. Sculpt, fluff, and define your brows.">
+    <product id="b1">
+      <name>Grooming Gel</name>
+      <tagline>Effortless sculpting gel</tagline>
+      <price>389</price>
+      <image>/images/Rectangle 144-7.png</image>
+      <rating>4.7</rating>
+      <reviews>890</reviews>
+      <variants>
+         <variant color="#5D4037">Brown</variant>
+      </variants>
+    </product>
+    <product id="b2">
+      <name>Micromarker</name>
+      <tagline>Stay-all-day liquid brow pen</tagline>
+      <price>300</price>
+      <image>/images/Rectangle 144-8.png</image>
+      <rating>4.5</rating>
+      <reviews>410</reviews>
+      <variants>
+         <variant color="#4A403A">Taupe</variant>
+      </variants>
+    </product>
+    <product id="b3">
+      <name>Pomade Pencil</name>
+      <tagline>Brow defining pomade pencil</tagline>
+      <price>200</price>
+      <image>/images/Rectangle 146-3.png</image>
+      <rating>4.6</rating>
+      <reviews>320</reviews>
+      <variants>
+         <variant color="#4A403A">Taupe</variant>
+      </variants>
+    </product>
+  </category>
+</catalog>

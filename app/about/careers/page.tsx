@@ -44,6 +44,7 @@ export default function CareersPage() {
   }
 
   return (
+    // Outer div is already transparent, no change needed.
     <div className="w-full bg-transparent text-foreground font-sans pt-32 pb-20 relative">
       <div className="container mx-auto px-4 md:px-8 max-w-3xl">
         

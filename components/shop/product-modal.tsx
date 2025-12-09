@@ -2,190 +2,297 @@
 
 import * as React from "react"
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog" // Ensure DialogTitle is imported for accessibility
+import { motion, AnimatePresence } from "framer-motion"
+import { 
+    X, Minus, Plus, ShoppingBag, Star, 
+    Facebook, Instagram, Twitter, 
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { X, Minus, Plus, Zap, Star, Check, Droplets, Sparkles, Feather } from "lucide-react"
 import { useCart } from "@/app/context/cart-context"
+import { useToast } from "@/hooks/use-toast"
 import type { Product } from "@/app/shop/page"
 
+// MODIFIED: Product type now accepts an optional 'rank' property
 interface ProductModalProps {
   isOpen: boolean
   onClose: () => void
-  product: Product | null
-}
-
-// Helper to get icons based on claim text (optional visual flair)
-const getClaimIcon = (claim: string) => {
-  const lower = claim.toLowerCase()
-  if (lower.includes("water") || lower.includes("hydrat")) return <Droplets className="w-3 h-3" />
-  if (lower.includes("light") || lower.includes("weight")) return <Feather className="w-3 h-3" />
-  if (lower.includes("shine") || lower.includes("glow")) return <Sparkles className="w-3 h-3" />
-  if (lower.includes("easy")) return <Zap className="w-3 h-3" />
-  return <Check className="w-3 h-3" />
+  product: (Product & { rank?: number }) | null
 }
 
 export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
   const { addItem } = useCart()
-  const [quantity, setQuantity] = useState(1)
+  const { toast } = useToast()
   
-  // State for the currently displayed image & selected variant
-  const [selectedImage, setSelectedImage] = useState<string>("")
-  const [selectedVariantName, setSelectedVariantName] = useState<string>("")
-  const [selectedColor, setSelectedColor] = useState<string>("")
+  const [quantity, setQuantity] = useState(1)
+  const [activeVariant, setActiveVariant] = useState<any>(null)
+  const [activeImage, setActiveImage] = useState("")
 
-  // Reset state when the product changes
+  // --- Dynamic Mock Post Content Generation ---
+  const postTitle = product ? product.name : "New Product Drop"
+  const postPrice = product ? `₱${product.price.toLocaleString()}` : "Amazing Price"
+  const postTagline = product ? product.tagline : "Your everyday essential"
+
+  const mockPostContent = `🚨 NEW OBSESSION ALERT! 🚨\n\nI just found the ultimate lip product: The ${postTitle}!\n\nIt's a ${postTagline} and it only costs ${postPrice}. Time to upgrade my makeup bag!\n\n#MIABeauty #CleanBeauty #LipGoals #NewDrop`
+
+  const MOCK_LINKS = {
+      // Facebook Sharing: Uses quote for text and u for generic image/link that can be ignored for this purpose.
+      facebook: `https://www.facebook.com/sharer/sharer.php?quote=${encodeURIComponent(mockPostContent)}`,
+      
+      // X (Twitter) Sharing: Uses text parameter.
+      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(mockPostContent)}`,
+      
+      // Instagram: Since IG does not support pre-filled posts via URL, we link to their profile or a landing page.
+      instagram: "https://www.instagram.com/miabeautyinc", 
+  }
+
+  // Reset state when product opens
   useEffect(() => {
     if (product) {
       setQuantity(1)
-      // Default to the first variant's image if available, otherwise main image
-      const defaultVariant = product.variants?.[0]
-      setSelectedImage(defaultVariant?.image || product.image)
-      setSelectedVariantName(defaultVariant?.name || "Standard")
-      setSelectedColor(defaultVariant?.color || product.colors?.[0] || "")
+      if (product.variants && product.variants.length > 0) {
+        setActiveVariant(product.variants[0])
+        setActiveImage(product.variants[0].image)
+      } else {
+        setActiveVariant(null)
+        setActiveImage(product.image)
+      }
     }
   }, [product])
 
-  if (!product) return null
-
   const handleAddToCart = () => {
+    if (!product) return
+
     addItem({
       id: product.id,
       name: product.name,
       price: product.price,
-      image: selectedImage,
-      variant: selectedVariantName,
+      image: activeImage,
+      variant: activeVariant ? activeVariant.name : "Standard",
+    })
+    
+    // Simulate adding multiple for this demo if context doesn't support bulk add yet
+    for(let i = 1; i < quantity; i++) {
+         addItem({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image: activeImage,
+            variant: activeVariant ? activeVariant.name : "Standard",
+         })
+    }
+
+    toast({
+      title: "Added to Bag",
+      description: `${quantity}x ${product.name} ${activeVariant ? `(${activeVariant.name})` : ""} added.`,
     })
     onClose()
   }
 
+  const handleVariantClick = (variant: any) => {
+      setActiveVariant(variant)
+      setActiveImage(variant.image)
+  }
+
+  if (!product) return null
+
+  // Determine the text to display in the top-left badge
+  const badgeText = product.rank 
+    ? `#${product.rank} BEST SELLER` 
+    : (product.category?.toUpperCase() || "GENERAL")
+
+  // Determine badge colors
+  const badgeClasses = product.rank
+    ? "bg-[#AB462F] text-white" // Use the accent color for Best Seller
+    : "bg-white/90 dark:bg-black/80 backdrop-blur text-[#1a1a1a] dark:text-white border border-stone-200 dark:border-white/10"
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 ${isOpen ? "animate-in fade-in duration-200" : "hidden"}`}>
-        {/* Backdrop */}
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 z-[60] bg-stone-900/40 backdrop-blur-md transition-all"
+          />
 
-        {/* Modal Card */}
-        <div className="relative w-full max-w-4xl bg-[#FDFCFA] dark:bg-[#1a1a1a] rounded-xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]">
-          
-          {/* Close Button */}
-          <button onClick={onClose} className="absolute top-4 right-4 z-20 p-2 hover:bg-black/5 rounded-full transition-colors">
-            <X className="w-5 h-5 text-stone-500" />
-          </button>
+          {/* Modal Container */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="fixed inset-0 z-[70] flex items-center justify-center p-4 sm:p-6 pointer-events-none"
+          >
+            <div className="w-full max-w-5xl bg-[#FDFCFA] dark:bg-[#1a1a1a] rounded-[32px] shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh] md:max-h-[600px] pointer-events-auto relative">
+              
+              {/* Close Button (Floating) */}
+              <button 
+                onClick={onClose}
+                className="absolute top-4 right-4 z-50 p-2 bg-white/50 dark:bg-black/50 backdrop-blur-sm rounded-full hover:bg-[#AB462F] hover:text-white transition-all duration-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
 
-          {/* LEFT: Image Section */}
-          <div className="w-full md:w-1/2 bg-[#F0EBE6] dark:bg-stone-800 flex items-center justify-center p-8 relative">
-             <div className="relative aspect-square w-full max-w-[350px]">
-                <img 
-                  src={selectedImage} 
+              {/* LEFT: Image Section */}
+              <div className="w-full md:w-1/2 bg-[#E8E6E1] dark:bg-stone-800 relative group overflow-hidden h-[40vh] md:h-full">
+                <motion.img
+                  key={activeImage} // Triggers animation on change
+                  initial={{ opacity: 0, scale: 1.1 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5 }}
+                  src={activeImage}
                   alt={product.name}
-                  className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transition-opacity duration-300"
+                  className="w-full h-full object-cover object-center"
                 />
-             </div>
-          </div>
-
-          {/* RIGHT: Details Section */}
-          <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col overflow-y-auto bg-[#FDFCFA] dark:bg-[#1a1a1a]">
-            
-            {/* Header */}
-            <div className="mb-6">
-              <h2 className="text-4xl font-black uppercase tracking-tighter mb-1 text-[#1a1a1a] dark:text-white">{product.name}</h2>
-              <p className="text-stone-500 text-sm font-medium uppercase tracking-wide">{product.tagline}</p>
-              {product.weight && (
-                <p className="text-[10px] text-stone-400 mt-1 uppercase tracking-widest">{product.weight}</p>
-              )}
-            </div>
-
-            {/* Dynamic Claims Grid */}
-            {product.claims && product.claims.length > 0 && (
-              <div className="grid grid-cols-2 gap-y-3 gap-x-4 mb-8 text-[10px] font-bold uppercase tracking-widest text-stone-600 dark:text-stone-400">
-                 {product.claims.map((claim, i) => (
-                   <div key={i} className="flex items-center gap-2">
-                     <span className="text-[#AB462F]">{getClaimIcon(claim)}</span>
-                     <span>{claim}</span>
-                   </div>
-                 ))}
-              </div>
-            )}
-
-            {/* Description (Why We Love It) */}
-            <div className="space-y-4 mb-8">
-               <h3 className="text-xs font-bold uppercase tracking-widest text-black dark:text-white border-b border-stone-100 pb-2">Why We Love It</h3>
-               <p className="text-sm text-stone-600 dark:text-stone-300 leading-relaxed font-light">
-                 {product.whyWeLoveIt || product.whatItIs || "Experience the perfect balance of color and care."}
-               </p>
-               
-               {/* Reviews */}
-               <div className="flex items-center gap-2 mt-4">
-                  <div className="flex text-[#E6C25F]">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className={`w-3 h-3 ${i < Math.floor(product.rating || 5) ? "fill-current" : "opacity-30"}`} />
-                    ))}
-                  </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-stone-800 dark:text-stone-200">
-                    {product.reviews ? `${product.reviews} Reviews` : "New Arrival"}
-                  </span>
-               </div>
-            </div>
-
-            <div className="mt-auto space-y-6">
-                {/* --- SHADE SELECTION --- */}
-                {product.variants && product.variants.length > 0 && (
-                  <div>
-                    <div className="flex justify-between mb-3">
-                        <span className="text-xs font-bold uppercase tracking-widest text-stone-400">Select Shade</span>
-                        <span className="text-xs font-bold uppercase tracking-widest text-[#AB462F]">{selectedVariantName}</span>
-                    </div>
-                    <div className="flex flex-wrap gap-3">
-                      {product.variants.map((variant, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => {
-                              setSelectedImage(variant.image)
-                              setSelectedVariantName(variant.name)
-                              setSelectedColor(variant.color)
-                          }}
-                          className={`w-10 h-10 rounded-full transition-all duration-200 shadow-sm ${
-                            selectedVariantName === variant.name 
-                              ? "ring-2 ring-[#AB462F] ring-offset-2 scale-110" 
-                              : "hover:scale-110 hover:ring-1 hover:ring-stone-300"
-                          }`}
-                          style={{ backgroundColor: variant.color }}
-                          title={variant.name}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <hr className="border-stone-200 dark:border-stone-800" />
-
-                {/* Footer Actions */}
-                <div className="flex items-center gap-4">
-                   {/* Quantity */}
-                   <div className="flex items-center justify-between border border-stone-300 dark:border-stone-700 rounded-full h-14 w-36 px-5">
-                      <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="hover:text-[#AB462F] transition-colors">
-                        <Minus className="w-4 h-4" />
-                      </button>
-                      <span className="text-base font-bold">{quantity}</span>
-                      <button onClick={() => setQuantity(q => q + 1)} className="hover:text-[#AB462F] transition-colors">
-                        <Plus className="w-4 h-4" />
-                      </button>
-                   </div>
-
-                   {/* Add Button */}
-                   <Button 
-                     onClick={handleAddToCart}
-                     className="flex-1 h-14 rounded-full bg-white border border-stone-900 text-black font-bold tracking-[0.2em] uppercase text-xs hover:bg-stone-900 hover:text-white transition-all flex justify-between px-8 items-center shadow-none hover:shadow-lg"
-                   >
-                     <span className="font-bold text-sm">₱{product.price * quantity}</span>
-                     <span>Add to Bag</span>
-                   </Button>
+                
+                {/* Ranking / Category Badge */}
+                <div className="absolute top-6 left-6">
+                    {/* MODIFIED: Dynamic badge classes applied here */}
+                    <span className={`text-[10px] font-bold uppercase tracking-[0.2em] px-3 py-1.5 rounded-full ${badgeClasses}`}>
+                        {badgeText}
+                    </span>
                 </div>
-            </div>
+              </div>
 
-          </div>
-        </div>
-      </div>
-    </Dialog>
+              {/* RIGHT: Details Section */}
+              <div className="w-full md:w-1/2 p-6 md:p-12 flex flex-col overflow-y-auto custom-scrollbar bg-white dark:bg-[#121212]">
+                
+                {/* Header */}
+                <div className="mb-8">
+                    <div className="flex justify-between items-start mb-2">
+                        <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-[#1a1a1a] dark:text-white leading-[0.9]">
+                            {product.name}
+                        </h2>
+                    </div>
+                    
+                    <p className="font-serif italic text-stone-500 text-lg mb-3">
+                        {product.tagline}
+                    </p>
+
+                    <div className="flex items-center gap-4">
+                        <span className="text-2xl font-bold text-[#AB462F]">₱{product.price}</span>
+                        <div className="h-4 w-px bg-stone-300"></div>
+                        <div className="flex items-center gap-1 text-xs font-bold text-stone-500">
+                             <div className="flex text-[#AB462F]">
+                                {[...Array(5)].map((_, i) => (
+                                    <Star key={i} className={`w-3 h-3 ${i < Math.floor(product.rating || 5) ? "fill-current" : "opacity-30"}`} />
+                                ))}
+                             </div>
+                             <span>({product.reviews || 89} Reviews)</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Variants / Colors */}
+                <div className="mb-8 space-y-3">
+                    <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                            Shade: <span className="text-[#1a1a1a] dark:text-white">{activeVariant?.name || "Standard"}</span>
+                        </span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-3">
+                        {product.variants && product.variants.length > 0 ? (
+                            product.variants.map((variant, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => handleVariantClick(variant)}
+                                    className={`w-10 h-10 rounded-full transition-all duration-300 relative group flex items-center justify-center ${
+                                        activeVariant?.name === variant.name 
+                                        ? "ring-2 ring-offset-2 ring-[#AB462F] scale-110" 
+                                        : "hover:scale-110 opacity-70 hover:opacity-100"
+                                    }`}
+                                    title={variant.name}
+                                >
+                                    <span 
+                                        className="w-full h-full rounded-full border border-stone-200 dark:border-white/10 shadow-sm"
+                                        style={{ backgroundColor: variant.color }} 
+                                    />
+                                </button>
+                            ))
+                        ) : (
+                            // Fallback if no variants but colors array exists
+                            product.colors?.map((color, idx) => (
+                                <div key={idx} className="w-8 h-8 rounded-full border border-stone-200" style={{ backgroundColor: color }} />
+                            ))
+                        )}
+                    </div>
+                </div>
+
+                {/* Description Text */}
+                <div className="flex-grow mb-8">
+                    <p className="text-sm text-stone-500 leading-relaxed">
+                        {product.whatItIs || "Weightless, modern matte lipstick that feels like nothing on your lips. Formulated with silk-structure technology for a second-skin feel."}
+                    </p>
+                </div>
+
+                {/* Actions */}
+                <div className="mt-auto space-y-4">
+                    <div className="flex gap-4">
+                        {/* Quantity Selector */}
+                        <div className="h-14 w-32 border border-stone-200 dark:border-stone-700 rounded-full flex items-center justify-between px-4 bg-stone-50 dark:bg-white/5">
+                            <button 
+                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                className="w-8 h-full flex items-center justify-center text-stone-400 hover:text-[#AB462F]"
+                            >
+                                <Minus className="w-4 h-4" />
+                            </button>
+                            <span className="font-bold text-sm">{quantity}</span>
+                            <button 
+                                onClick={() => setQuantity(quantity + 1)}
+                                className="w-8 h-full flex items-center justify-center text-stone-400 hover:text-[#AB462F]"
+                            >
+                                <Plus className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        {/* Add Button */}
+                        <Button 
+                            onClick={handleAddToCart}
+                            className="flex-1 h-14 rounded-full bg-[#1a1a1a] hover:bg-[#AB462F] text-white font-bold uppercase tracking-widest text-xs shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300"
+                        >
+                            <span className="flex items-center gap-2">
+                                <ShoppingBag className="w-4 h-4" /> Add to Bag — ₱{(product.price * quantity).toLocaleString()}
+                            </span>
+                        </Button>
+                    </div>
+
+                    {/* Footer Links (Share Icons) */}
+                    <div className="flex justify-center items-center gap-4 pt-4 border-t border-stone-100 dark:border-stone-800">
+                        
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">SHARE:</span>
+                        
+                        {/* Facebook Share with Draft Post */}
+                        <a href={MOCK_LINKS.facebook} target="_blank" rel="noopener noreferrer">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-stone-500 hover:text-blue-600">
+                                <Facebook className="w-4 h-4" />
+                            </Button>
+                        </a>
+                        
+                        {/* X (Twitter) Share with Draft Post */}
+                        <a href={MOCK_LINKS.twitter} target="_blank" rel="noopener noreferrer">
+                             <Button variant="ghost" size="icon" className="h-8 w-8 text-stone-500 hover:text-black dark:hover:text-white">
+                                <Twitter className="w-4 h-4" />
+                            </Button>
+                        </a>
+                        
+                        {/* Instagram (Direct Link) */}
+                        <a href={MOCK_LINKS.instagram} target="_blank" rel="noopener noreferrer">
+                             <Button variant="ghost" size="icon" className="h-8 w-8 text-stone-500 hover:text-pink-600">
+                                <Instagram className="w-4 h-4" />
+                            </Button>
+                        </a>
+                    </div>
+                </div>
+
+              </div>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   )
 }
