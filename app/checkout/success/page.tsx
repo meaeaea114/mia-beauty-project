@@ -3,13 +3,14 @@
 
 import * as React from "react"
 import { useSearchParams } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react" // <--- ADD Suspense here
 import { CheckCircle2, ShoppingBag, Truck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { supabase } from "@/lib/supabase" // Import Supabase
+import { supabase } from "@/lib/supabase" 
 
-export default function OrderSuccessPage() {
+// 1. Rename the main component to hold the content
+function OrderSuccessContent() { 
   const searchParams = useSearchParams()
   const orderId = searchParams.get("id") || "MIA-0000"
   
@@ -115,4 +116,13 @@ export default function OrderSuccessPage() {
         </div>
     </div>
   )
+}
+
+// 2. Export the wrapper component with the Suspense boundary
+export default function OrderSuccessPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading Success Details...</div>}>
+            <OrderSuccessContent />
+        </Suspense>
+    )
 }
