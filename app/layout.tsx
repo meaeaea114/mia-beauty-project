@@ -1,3 +1,5 @@
+// app/layout.tsx
+
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
@@ -7,6 +9,7 @@ import { Footer } from '@/components/layout/footer'
 import { CartProvider } from '@/app/context/cart-context'
 import { CartDrawer } from '@/components/layout/cart-drawer'
 import { Chatbot } from '@/components/chat/chatbot' 
+import { ExitModal } from '@/components/ui/exit-modal'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -33,8 +36,12 @@ export default function RootLayout({
           
           {/* Chatbot is placed here to be visible on every page */}
           <Chatbot />
+
+          {/* Exit Modal Plugin */}
+          <ExitModal />
           
-          <main className="flex-grow relative w-full">
+          {/* MODIFIED: Added pt-20 to ensure content clears the fixed header. */}
+          <main className="flex-grow relative w-full pt-20">
             {children}
           </main>
           

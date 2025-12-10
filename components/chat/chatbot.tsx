@@ -126,7 +126,10 @@ export function Chatbot() {
   const [userProfile, setUserProfile] = useState<UserProfile>({})
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const { addItem } = useCart()
+  
+  // --- FIX: Destructure isCartOpen to detect when cart is active ---
+  const { addItem, isCartOpen } = useCart()
+  
   const router = useRouter()
   const t = STRINGS[language]
 
@@ -402,7 +405,8 @@ export function Chatbot() {
   }
 
   return (
-    <>
+    // FIX: Wrapper div that hides chatbot when cart is open (preserving history)
+    <div className={isCartOpen ? "hidden" : "contents"}>
       {/* Launcher */}
       <motion.button
         initial={{ scale: 0 }} animate={{ scale: 1 }} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
@@ -549,6 +553,6 @@ export function Chatbot() {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </div>
   )
 }

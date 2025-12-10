@@ -4,17 +4,17 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Sunnies-inspired Warm/Neutral Palette */
+  /* Sunnies-inspired Warm/Neutral Palette - Refined */
   --background: oklch(0.98 0.01 85);
   --foreground: oklch(0.15 0.02 85);
   
-  --card: oklch(1 0 0);
+  --card: oklch(0.99 0.005 85);
   --card-foreground: oklch(0.15 0.02 85);
   
-  --popover: oklch(1 0 0);
+  --popover: oklch(0.99 0.005 85);
   --popover-foreground: oklch(0.15 0.02 85);
   
-  --primary: oklch(0.48 0.15 35);
+  --primary: oklch(0.48 0.15 35); /* #AB462F */
   --primary-foreground: oklch(0.98 0.01 85);
   
   --secondary: oklch(0.94 0.03 85);
@@ -23,14 +23,14 @@
   --muted: oklch(0.96 0.01 85);
   --muted-foreground: oklch(0.55 0.02 85);
   
-  --accent: oklch(0.90 0.05 85);
+  --accent: oklch(0.92 0.04 85);
   --accent-foreground: oklch(0.15 0.02 85);
   
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.98 0.01 85);
   
-  --border: oklch(0.92 0.01 85);
-  --input: oklch(0.92 0.01 85);
+  --border: oklch(0.90 0.01 85);
+  --input: oklch(0.90 0.01 85);
   --ring: oklch(0.48 0.15 35);
   
   --radius: 0rem;
@@ -39,9 +39,9 @@
 .dark {
   --background: oklch(0.15 0.02 85);
   --foreground: oklch(0.98 0.01 85);
-  --card: oklch(0.15 0.02 85);
+  --card: oklch(0.18 0.02 85);
   --card-foreground: oklch(0.98 0.01 85);
-  --popover: oklch(0.15 0.02 85);
+  --popover: oklch(0.18 0.02 85);
   --popover-foreground: oklch(0.98 0.01 85);
   --primary: oklch(0.98 0.01 85);
   --primary-foreground: oklch(0.15 0.02 85);
@@ -86,31 +86,49 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
   
   body {
-    @apply text-foreground min-h-screen transition-all duration-500 ease-in-out;
+    @apply text-foreground min-h-screen transition-all duration-500 ease-in-out antialiased selection:bg-primary/20 selection:text-primary;
     
-    /* Updated for High Resolution:
-       - 'repeat' ensures the texture tiles seamlessly instead of stretching.
-       - 'auto' uses the image's native resolution.
-    */
+    /* Texture Background Support: LIGHT MODE (Tiling retained) */
     background-image: url('/images/light_texture.jpg');
     background-repeat: repeat;
-    background-size: auto; /* Use '500px' here if the native image is too small/large */
+    background-size: auto; 
     background-position: top left;
     background-attachment: fixed;
   }
 
-  /* DARK MODE BACKGROUND */
+  /* DARK MODE FIX: Revert to repeat/auto to maintain high resolution pattern, undoing the stretching. */
   :is(.dark body) {
     background-image: url('/images/dark_texture.jpg');
+    background-repeat: repeat;    /* Allow repeating for high resolution texture pattern */
+    background-size: auto;        /* Use natural size (do not stretch) */
+    background-attachment: fixed;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold tracking-tight uppercase;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary/20 hover:bg-primary/50 transition-colors;
   }
 }
 
@@ -125,6 +143,20 @@
   .no-scrollbar {
       -ms-overflow-style: none;
       scrollbar-width: none;
+  }
+
+  /* Glassmorphism Utility */
+  .glass {
+    @apply bg-white/70 dark:bg-black/70 backdrop-blur-md border border-white/20 dark:border-white/10;
+  }
+
+  /* FIX: Hero Section Text Stroke Contrast */
+  .hero-stroke-text {
+     -webkit-text-stroke: 1px #2D2420; /* Light Mode: Dark Stroke */
+     color: transparent !important; /* Keep the fill transparent */
+  }
+  .dark .hero-stroke-text {
+     -webkit-text-stroke: 1px var(--foreground); /* Dark Mode: Light Stroke */
   }
 }
 

@@ -149,7 +149,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#FDFCFA] dark:bg-[#0a0a0a] flex items-center justify-center pt-24 pb-12 px-4">
+    // MODIFIED: Changed solid background to transparent
+    <div className="min-h-screen w-full bg-transparent flex items-center justify-center pt-24 pb-12 px-4">
         <div className="w-full max-w-[420px] bg-white dark:bg-white/5 border border-stone-100 dark:border-stone-800 shadow-2xl rounded-2xl p-8 md:p-10 relative overflow-hidden">
           
           {/* Decorative Top Border */}

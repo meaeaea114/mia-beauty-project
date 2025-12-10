@@ -34,7 +34,7 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
             <div className="space-y-4">
                 <div className="h-16 w-16 bg-[#AB462F]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <span className="text-2xl">🐰</span>
+                    <span className="text-2xl">晴</span>
                 </div>
                 <h3 className="text-xl font-bold uppercase tracking-tight">Cruelty Free</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
@@ -43,7 +43,7 @@ export default function AboutPage() {
             </div>
             <div className="space-y-4">
                 <div className="h-16 w-16 bg-[#AB462F]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <span className="text-2xl">🌿</span>
+                    <span className="text-2xl">諺</span>
                 </div>
                 <h3 className="text-xl font-bold uppercase tracking-tight">Clean Ingredients</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
@@ -52,7 +52,7 @@ export default function AboutPage() {
             </div>
             <div className="space-y-4">
                 <div className="h-16 w-16 bg-[#AB462F]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <span className="text-2xl">🌍</span>
+                    <span className="text-2xl">訣</span>
                 </div>
                 <h3 className="text-xl font-bold uppercase tracking-tight">Sustainable</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
@@ -63,7 +63,8 @@ export default function AboutPage() {
       </section>
 
       {/* Philosophy Text */}
-      <section className="bg-[#FAF9F6] dark:bg-white/5 py-24">
+      {/* MODIFIED: Changed solid background to semi-transparent to allow texture through */}
+      <section className="bg-[#FAF9F6]/50 dark:bg-black/50 py-24">
           <div className="container mx-auto px-4 md:px-8 grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
               <div className="order-2 md:order-1">
                   <h2 className="text-4xl font-bold uppercase tracking-tight mb-6">The MIA Philosophy</h2>

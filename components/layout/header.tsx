@@ -2,14 +2,15 @@
 
 import * as React from "react"
 import { useState, useEffect } from "react"
-import { ShoppingBag, Moon, Sun, Menu, Search, User, X, ArrowRight, Trash2 } from "lucide-react"
+import { ShoppingBag, Moon, Sun, Menu, Search, User, X, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
+import { useCart } from "@/app/context/cart-context"
 
-// --- COMPLETE SEARCH DATA INDEX (Synced with Shop Page) ---
+// --- COMPLETE SEARCH DATA INDEX ---
 const SEARCH_INDEX = [
   // LIPS
   { id: "l1", name: "Fluffmatte", category: "Lips", price: 399, image: "/images/Rectangle 131.png" },
@@ -55,17 +56,22 @@ export function Header() {
   const [theme, setTheme] = useState("light")
   const [mounted, setMounted] = useState(false)
   
-  // Toggle States
+  // UI States
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isCartOpen, setIsCartOpen] = useState(false)
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false) // For Mobile Overlay
+  const [isSearchFocused, setIsSearchFocused] = useState(false) // For Desktop Dropdown
+
+  const { 
+    setIsCartOpen, 
+    totalItems 
+  } = useCart()
 
   // Search Logic States
   const [query, setQuery] = useState("")
   const [results, setResults] = useState(SEARCH_INDEX)
 
   const { toast } = useToast()
-  const router = useRouter() // Init router
+  const router = useRouter()
 
   // Handle Scroll Effect
   useEffect(() => {
@@ -109,21 +115,29 @@ export function Header() {
     document.documentElement.classList.toggle("dark", newTheme === "dark")
   }
 
-  // --- UPDATED NAVIGATION LOGIC ---
+  // --- NAVIGATION LOGIC ---
   const handleSearchResultClick = (item: typeof SEARCH_INDEX[0]) => {
     setIsSearchOpen(false)
-    setQuery("") // Clear query
+    setIsSearchFocused(false) // Close desktop dropdown
+    setQuery("") 
     
     toast({
-      title: "Found it!",
-      description: `Taking you to ${item.name}...`, 
-      duration: 1000
+      title: "Opening Product",
+      description: `Viewing ${item.name}...`, 
+      duration: 800
     })
 
-    // Navigate to Shop Page and scroll to Category Anchor
-    // e.g., category "Lips" -> "/shop#lips"
-    const sectionId = item.category.toLowerCase()
-    router.push(`/shop#${sectionId}`)
+    router.push(`/shop?q=${encodeURIComponent(item.name)}`)
+  }
+
+  // Handle "Enter" key for global search
+  const handleGlobalSearch = (e: React.FormEvent) => {
+      e.preventDefault()
+      if(query.trim()) {
+          setIsSearchOpen(false)
+          setIsSearchFocused(false)
+          router.push(`/shop?q=${encodeURIComponent(query)}`)
+      }
   }
 
   if (!mounted) return null
@@ -132,7 +146,7 @@ export function Header() {
     <>
       <header 
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled || isMobileMenuOpen || isCartOpen
+          isScrolled || isMobileMenuOpen
             ? "bg-white/95 dark:bg-black/95 backdrop-blur-md py-4 border-b border-stone-200/50 dark:border-white/10" 
             : "bg-transparent py-6 border-transparent"
         }`}
@@ -153,30 +167,10 @@ export function Header() {
 
           {/* LEFT: Navigation Links (Desktop) */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link 
-              href="/" 
-              className="text-xs font-bold uppercase tracking-[0.15em] text-foreground hover:text-[#C6A87C] transition-colors"
-            >
-              Home
-            </Link>
-            <Link 
-              href="/shop" 
-              className="text-xs font-bold uppercase tracking-[0.15em] text-foreground hover:text-[#C6A87C] transition-colors"
-            >
-              Shop
-            </Link>
-            <Link 
-              href="/best-sellers" 
-              className="text-xs font-bold uppercase tracking-[0.15em] text-foreground hover:text-[#C6A87C] transition-colors"
-            >
-              Best Seller
-            </Link>
-            <Link 
-              href="#footer" 
-              className="text-xs font-bold uppercase tracking-[0.15em] text-foreground hover:text-[#C6A87C] transition-colors"
-            >
-              About
-            </Link>
+            <Link href="/" className="text-xs font-bold uppercase tracking-[0.15em] text-foreground hover:text-[#C6A87C] transition-colors">Home</Link>
+            <Link href="/shop" className="text-xs font-bold uppercase tracking-[0.15em] text-foreground hover:text-[#C6A87C] transition-colors">Shop</Link>
+            <Link href="/best-sellers" className="text-xs font-bold uppercase tracking-[0.15em] text-foreground hover:text-[#C6A87C] transition-colors">Best Seller</Link>
+            <Link href="#footer" className="text-xs font-bold uppercase tracking-[0.15em] text-foreground hover:text-[#C6A87C] transition-colors">About</Link>
           </nav>
 
           {/* CENTER: Logo */}
@@ -187,30 +181,71 @@ export function Header() {
           </div>
 
           {/* RIGHT: Actions */}
-          <div className="hidden md:flex items-center gap-1 z-50">
-            <Button 
-                variant="ghost" 
-                size="icon" 
-                className={`rounded-full hover:bg-black/5 dark:hover:bg-white/10 ${isSearchOpen ? 'bg-black text-white dark:bg-white dark:text-black' : ''}`}
-                onClick={() => {
-                   setIsSearchOpen(!isSearchOpen)
-                   if(!isSearchOpen) setQuery("") 
-                }}
-            >
-              {isSearchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
-            </Button>
+          <div className="hidden md:flex items-center gap-4 z-50">
+            
+            {/* --- DESKTOP SEARCH BAR (LIVE) --- */}
+            <div className="relative w-64 lg:w-72">
+                 <form onSubmit={handleGlobalSearch} className="relative z-10">
+                    <div className={`flex items-center rounded-full px-4 py-2 transition-all duration-300 ${isSearchFocused || query ? 'bg-stone-100 dark:bg-white/10 ring-1 ring-[#AB462F]/20' : 'bg-transparent hover:bg-stone-100 dark:hover:bg-white/5'}`}>
+                        <input 
+                            type="text" 
+                            placeholder="SEARCH..." 
+                            className="bg-transparent border-none outline-none text-xs font-bold w-full placeholder:text-stone-400 placeholder:font-normal uppercase tracking-wider"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            onFocus={() => setIsSearchFocused(true)}
+                            onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)} 
+                        />
+                        <button type="submit">
+                            <Search className={`w-4 h-4 transition-colors ${isSearchFocused ? 'text-[#AB462F]' : 'text-stone-400'}`} />
+                        </button>
+                    </div>
+                 </form>
 
-            {/* User Icon - Links to Login */}
+                 {/* --- DROPDOWN RESULTS --- */}
+                 <div className={`absolute top-full right-0 mt-4 w-[350px] bg-white/90 dark:bg-[#121212]/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-stone-200/50 dark:border-white/10 overflow-hidden transition-all duration-300 origin-top-right ${isSearchFocused && query.length > 0 ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'}`}>
+                     <div className="max-h-[350px] overflow-y-auto py-2">
+                        {results.length > 0 ? (
+                            <>
+                                <p className="text-[9px] font-bold uppercase tracking-widest text-stone-400 px-5 py-2">Products</p>
+                                {results.slice(0, 5).map(item => (
+                                    <div 
+                                        key={item.id}
+                                        onMouseDown={(e) => { e.preventDefault(); handleSearchResultClick(item); }}
+                                        className="group flex items-center gap-4 px-5 py-3 hover:bg-[#AB462F]/5 cursor-pointer transition-all duration-200 border-b border-dashed border-stone-100 dark:border-stone-800/50 last:border-0"
+                                    >
+                                        <div className="h-12 w-12 bg-stone-100 dark:bg-white/5 shrink-0 rounded-lg overflow-hidden border border-stone-200 dark:border-white/10 group-hover:border-[#AB462F]/20 transition-colors">
+                                            <img src={item.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={item.name} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-bold uppercase truncate text-foreground group-hover:text-[#AB462F] transition-colors">{item.name}</p>
+                                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{item.category}</p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-xs font-semibold text-foreground">₱{item.price}</span>
+                                            <ChevronRight className="w-3 h-3 text-stone-300 group-hover:text-[#AB462F] group-hover:translate-x-1 transition-all" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </>
+                        ) : (
+                            <div className="p-8 text-center">
+                                <p className="text-sm font-medium text-stone-500 mb-1">No matches found</p>
+                                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Try "Lipstick"</p>
+                            </div>
+                        )}
+                     </div>
+                 </div>
+            </div>
+
+            {/* User Icon */}
             <Link href="/account/login">
-              <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="rounded-full hover:bg-black/5 dark:hover:bg-white/10"
-              >
+              <Button variant="ghost" size="icon" className="rounded-full hover:bg-black/5 dark:hover:bg-white/10">
                 <User className="h-5 w-5" />
               </Button>
             </Link>
 
+            {/* Cart Trigger (Just sets state, doesn't render cart) */}
             <Button 
                 variant="ghost" 
                 size="icon" 
@@ -218,22 +253,18 @@ export function Header() {
                 onClick={() => setIsCartOpen(true)}
             >
               <ShoppingBag className="h-5 w-5" />
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-[#AB462F] rounded-full" />
+              {totalItems > 0 && (
+                 <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-[#AB462F] rounded-full animate-in zoom-in" />
+              )}
             </Button>
 
             <div className="w-px h-4 bg-foreground/20 mx-2" />
             
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-            >
+            <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full hover:bg-black/5 dark:hover:bg-white/10">
                <div className="relative h-5 w-5">
                   <Sun className={`absolute h-full w-full transition-all ${theme === 'dark' ? 'scale-0 rotate-90' : 'scale-100 rotate-0'} text-amber-600`} />
                   <Moon className={`absolute h-full w-full transition-all ${theme === 'light' ? 'scale-0 -rotate-90' : 'scale-100 rotate-0'} text-foreground`} />
                </div>
-               <span className="sr-only">Toggle theme</span>
             </Button>
           </div>
 
@@ -244,13 +275,16 @@ export function Header() {
               </Button>
               <Button variant="ghost" size="icon" onClick={() => setIsCartOpen(true)}>
                   <ShoppingBag className="h-5 w-5" />
+                  {totalItems > 0 && (
+                     <div className="absolute top-2 right-2 h-2 w-2 bg-[#AB462F] rounded-full" />
+                  )}
               </Button>
           </div>
 
         </div>
       </header>
 
-      {/* --- SEARCH OVERLAY --- */}
+      {/* --- MOBILE SEARCH OVERLAY --- */}
       <AnimatePresence>
         {isSearchOpen && (
             <motion.div 
@@ -258,74 +292,49 @@ export function Header() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.2 }}
-                className="fixed inset-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-xl pt-32 px-4 md:px-8 overflow-y-auto"
+                className="fixed inset-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-xl pt-32 px-4 md:px-8 overflow-y-auto md:hidden"
             >
                 <div className="container mx-auto max-w-4xl">
-                    
-                    {/* Search Input Area */}
-                    <div className="relative border-b-2 border-stone-200 dark:border-stone-800 pb-2 mb-10">
+                    <form onSubmit={handleGlobalSearch} className="relative border-b-2 border-stone-200 dark:border-stone-800 pb-2 mb-10">
                         <Search className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground" />
                         <input 
                             type="text" 
-                            placeholder="Search products, collections, or shades..." 
-                            className="w-full bg-transparent border-none pl-12 pr-4 py-4 text-2xl md:text-4xl font-black uppercase tracking-tight placeholder:text-muted-foreground/50 focus:outline-none focus:ring-0 text-foreground"
+                            placeholder="SEARCH..." 
+                            className="w-full bg-transparent border-none pl-12 pr-4 py-4 text-2xl font-black uppercase tracking-tight placeholder:text-muted-foreground/50 focus:outline-none focus:ring-0 text-foreground"
                             autoFocus
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                         />
-                         <button 
-                            onClick={() => setQuery("")}
-                            className={`absolute right-0 top-1/2 -translate-y-1/2 text-sm font-bold uppercase tracking-widest text-muted-foreground hover:text-[#AB462F] transition-opacity ${query ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-                         >
+                         <button type="button" onClick={() => setQuery("")} className={`absolute right-0 top-1/2 -translate-y-1/2 text-sm font-bold uppercase tracking-widest text-muted-foreground ${query ? 'opacity-100' : 'opacity-0'}`}>
                             Clear
                         </button>
-                    </div>
+                    </form>
 
-                    {/* Search Results Area */}
                     <div className="min-h-[40vh]">
                         {query === "" ? (
                              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
                                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Popular Categories</p>
                                 <div className="flex flex-wrap gap-4">
-                                    {["Lips", "Face", "Cheeks", "Sets", "Best Sellers"].map((tag) => (
-                                        <button 
-                                            key={tag}
-                                            onClick={() => setQuery(tag)}
-                                            className="px-6 py-2 rounded-full border border-stone-200 dark:border-stone-800 hover:border-[#AB462F] hover:text-[#AB462F] transition-colors text-sm font-bold uppercase tracking-wider"
-                                        >
+                                    {["Lips", "Face", "Cheeks", "Best Sellers"].map((tag) => (
+                                        <button key={tag} onClick={() => setQuery(tag)} className="px-6 py-2 rounded-full border border-stone-200 dark:border-stone-800 hover:border-[#AB462F] hover:text-[#AB462F] transition-colors text-sm font-bold uppercase tracking-wider">
                                             {tag}
                                         </button>
                                     ))}
                                 </div>
                              </div>
-                        ) : results.length > 0 ? (
-                            <div>
-                                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">
-                                    {results.length} Result{results.length !== 1 ? 's' : ''} found
-                                </p>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10">
-                                    {results.map((item) => (
-                                        <div 
-                                            key={item.id} 
-                                            className="group cursor-pointer flex gap-4 items-center"
-                                            onClick={() => handleSearchResultClick(item)}
-                                        >
-                                            <div className="h-20 w-16 bg-stone-100 dark:bg-white/5 shrink-0 overflow-hidden">
-                                                <img src={item.image} alt={item.name} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                            </div>
-                                            <div>
-                                                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{item.category}</p>
-                                                <h4 className="font-bold text-lg uppercase tracking-tight leading-none group-hover:text-[#AB462F] transition-colors">{item.name}</h4>
-                                                <p className="text-sm font-medium mt-1">₱{item.price}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
                         ) : (
-                            <div className="text-center py-20 opacity-60">
-                                <p className="text-lg font-medium">No results found for "{query}"</p>
-                                <p className="text-sm text-muted-foreground">Try checking for typos or using broader terms.</p>
+                            <div className="grid grid-cols-1 gap-4">
+                                {results.map((item) => (
+                                    <div key={item.id} className="flex gap-4 items-center bg-stone-50 dark:bg-white/5 p-3 rounded-lg" onClick={() => handleSearchResultClick(item)}>
+                                        <div className="h-16 w-16 bg-white shrink-0 rounded overflow-hidden">
+                                            <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-base uppercase">{item.name}</h4>
+                                            <p className="text-xs text-muted-foreground">{item.category} — ₱{item.price}</p>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         )}
                     </div>
@@ -334,7 +343,7 @@ export function Header() {
         )}
       </AnimatePresence>
 
-      {/* --- MOBILE MENU OVERLAY --- */}
+      {/* --- MOBILE MENU --- */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-40 bg-background pt-24 px-6 animate-in fade-in duration-200 md:hidden flex flex-col gap-8">
             <nav className="flex flex-col gap-6 text-2xl font-black uppercase tracking-tighter">
@@ -348,68 +357,10 @@ export function Header() {
             <div className="flex justify-between items-center">
                  <span className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Account</span>
                  <Link href="/account/login" onClick={() => setIsMobileMenuOpen(false)}>
-                     <Button variant="outline" className="rounded-full text-xs font-bold uppercase">
-                         Log In
-                     </Button>
+                     <Button variant="outline" className="rounded-full text-xs font-bold uppercase">Log In</Button>
                  </Link>
             </div>
         </div>
-      )}
-
-      {/* --- CART DRAWER --- */}
-      {isCartOpen && (
-        <>
-            <div 
-                className="fixed inset-0 bg-black/40 z-[60] backdrop-blur-sm animate-in fade-in duration-300"
-                onClick={() => setIsCartOpen(false)}
-            />
-            <div className="fixed top-0 right-0 h-full w-full md:w-[400px] bg-background z-[70] shadow-2xl border-l animate-in slide-in-from-right duration-300 flex flex-col">
-                <div className="p-6 border-b flex items-center justify-between">
-                    <h2 className="text-xl font-bold uppercase tracking-tight">Your Bag (1)</h2>
-                    <Button variant="ghost" size="icon" onClick={() => setIsCartOpen(false)}>
-                        <X className="h-5 w-5" />
-                    </Button>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                    <div className="flex gap-4">
-                        <div className="h-24 w-20 bg-stone-100 dark:bg-white/5 shrink-0">
-                            <img src="/images/fluffmatte-girlcrush.jpg" alt="Fluffmatte" className="h-full w-full object-cover" />
-                        </div>
-                        <div className="flex-1 flex flex-col justify-between">
-                            <div>
-                                <div className="flex justify-between items-start">
-                                    <h3 className="font-bold text-sm uppercase">Fluffmatte</h3>
-                                    <span className="text-sm font-medium">₱495</span>
-                                </div>
-                                <p className="text-xs text-muted-foreground mt-1">Girl Crush</p>
-                            </div>
-                            <div className="flex justify-between items-end">
-                                <div className="flex items-center border rounded-full px-2 py-0.5 gap-3">
-                                    <button className="text-xs hover:text-[#AB462F]">-</button>
-                                    <span className="text-xs font-medium">1</span>
-                                    <button className="text-xs hover:text-[#AB462F]">+</button>
-                                </div>
-                                <button className="text-muted-foreground hover:text-red-500 transition-colors">
-                                    <Trash2 className="h-4 w-4" />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="p-6 border-t bg-secondary/20 space-y-4">
-                    <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">Subtotal</span>
-                        <span className="font-bold">₱495</span>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground text-center">Shipping & taxes calculated at checkout.</p>
-                    <Button className="w-full h-12 rounded-full font-bold uppercase tracking-widest bg-[#AB462F] hover:bg-[#944E45] text-white">
-                        Checkout <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                </div>
-            </div>
-        </>
       )}
     </>
   )
