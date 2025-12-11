@@ -82,45 +82,6 @@ export default function RecoverPage() {
              </Button>
           </form>
 
-          {/* Spacer & Divider */}
-          <div className="w-full mt-12 mb-8">
-            <div className="relative flex items-center justify-center mb-8">
-                <div className="h-px bg-stone-200 dark:bg-stone-800 w-full absolute" />
-                <span className="bg-[#FDFCFA] dark:bg-[#1a1a1a] px-4 text-[10px] uppercase tracking-widest text-stone-400 relative z-10">Or Login With</span>
-            </div>
-
-            {/* Logo-only SSO Buttons - Extended List */}
-            <div className="flex justify-center gap-3 flex-wrap max-w-[400px] mx-auto">
-                <Button disabled={isLoading} variant="outline" size="icon" className="h-12 w-12 rounded-full border-stone-200 dark:border-stone-800 bg-white dark:bg-white/5 hover:bg-stone-50 dark:hover:bg-stone-800 hover:scale-110 transition-all duration-300 shadow-sm disabled:opacity-50 disabled:pointer-events-none" onClick={() => handleSSO('Google')}>
-                    <Chrome className="w-5 h-5 text-stone-600 dark:text-stone-300" />
-                </Button>
-                <Button disabled={isLoading} variant="outline" size="icon" className="h-12 w-12 rounded-full border-stone-200 dark:border-stone-800 bg-white dark:bg-white/5 hover:bg-stone-50 dark:hover:bg-stone-800 hover:scale-110 transition-all duration-300 shadow-sm disabled:opacity-50 disabled:pointer-events-none" onClick={() => handleSSO('Apple')}>
-                    <Apple className="w-5 h-5 text-stone-600 dark:text-stone-300" />
-                </Button>
-                <Button disabled={isLoading} variant="outline" size="icon" className="h-12 w-12 rounded-full border-stone-200 dark:border-stone-800 bg-white dark:bg-white/5 hover:bg-stone-50 dark:hover:bg-stone-800 hover:scale-110 transition-all duration-300 shadow-sm disabled:opacity-50 disabled:pointer-events-none" onClick={() => handleSSO('Facebook')}>
-                    <Facebook className="w-5 h-5 text-stone-600 dark:text-stone-300" />
-                </Button>
-                <Button disabled={isLoading} variant="outline" size="icon" className="h-12 w-12 rounded-full border-stone-200 dark:border-stone-800 bg-white dark:bg-white/5 hover:bg-stone-50 dark:hover:bg-stone-800 hover:scale-110 transition-all duration-300 shadow-sm disabled:opacity-50 disabled:pointer-events-none" onClick={() => handleSSO('Twitter')}>
-                    <Twitter className="w-5 h-5 text-stone-600 dark:text-stone-300" />
-                </Button>
-                <Button disabled={isLoading} variant="outline" size="icon" className="h-12 w-12 rounded-full border-stone-200 dark:border-stone-800 bg-white dark:bg-white/5 hover:bg-stone-50 dark:hover:bg-stone-800 hover:scale-110 transition-all duration-300 shadow-sm disabled:opacity-50 disabled:pointer-events-none" onClick={() => handleSSO('GitHub')}>
-                    <Github className="w-5 h-5 text-stone-600 dark:text-stone-300" />
-                </Button>
-                <Button disabled={isLoading} variant="outline" size="icon" className="h-12 w-12 rounded-full border-stone-200 dark:border-stone-800 bg-white dark:bg-white/5 hover:bg-stone-50 dark:hover:bg-stone-800 hover:scale-110 transition-all duration-300 shadow-sm disabled:opacity-50 disabled:pointer-events-none" onClick={() => handleSSO('LinkedIn')}>
-                    <Linkedin className="w-5 h-5 text-stone-600 dark:text-stone-300" />
-                </Button>
-                <Button disabled={isLoading} variant="outline" size="icon" className="h-12 w-12 rounded-full border-stone-200 dark:border-stone-800 bg-white dark:bg-white/5 hover:bg-stone-50 dark:hover:bg-stone-800 hover:scale-110 transition-all duration-300 shadow-sm disabled:opacity-50 disabled:pointer-events-none" onClick={() => handleSSO('Instagram')}>
-                    <Instagram className="w-5 h-5 text-stone-600 dark:text-stone-300" />
-                </Button>
-                <Button disabled={isLoading} variant="outline" size="icon" className="h-12 w-12 rounded-full border-stone-200 dark:border-stone-800 bg-white dark:bg-white/5 hover:bg-stone-50 dark:hover:bg-stone-800 hover:scale-110 transition-all duration-300 shadow-sm disabled:opacity-50 disabled:pointer-events-none" onClick={() => handleSSO('GitLab')}>
-                    <Gitlab className="w-5 h-5 text-stone-600 dark:text-stone-300" />
-                </Button>
-                <Button disabled={isLoading} variant="outline" size="icon" className="h-12 w-12 rounded-full border-stone-200 dark:border-stone-800 bg-white dark:bg-white/5 hover:bg-stone-50 dark:hover:bg-stone-800 hover:scale-110 transition-all duration-300 shadow-sm disabled:opacity-50 disabled:pointer-events-none" onClick={() => handleSSO('Twitch')}>
-                    <Twitch className="w-5 h-5 text-stone-600 dark:text-stone-300" />
-                </Button>
-            </div>
-          </div>
-
           <div className="mt-4">
             <Link href="/account/login" className="text-xs font-bold uppercase tracking-widest text-stone-400 hover:text-[#AB462F] transition-colors border-b border-transparent hover:border-[#AB462F] pb-0.5">
               Back to Login

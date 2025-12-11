@@ -17,17 +17,11 @@ export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
 
-  // --- 1. PHP/XAMPP CONNECTION LOGIC (UNCHANGED) ---
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-        // --- OLD PHP CODE (DELETE THIS) ---
-        // const response = await fetch("http://localhost/mia-backend/login.php", ...)
-        // ----------------------------------
-
-        // --- NEW SUPABASE CODE (ADD THIS) ---
         const { data, error } = await supabase.auth.signInWithPassword({
             email: formData.email,
             password: formData.password,
@@ -37,16 +31,26 @@ export default function LoginPage() {
             throw error
         }
 
-        // Login Success!
-        // Supabase automatically handles the session (cookies/localStorage)
-        
+        // --- CRITICAL FIX: Save User to Local Storage ---
+        // This allows the Checkout Page to "see" that you are logged in.
+        if (data.user) {
+            localStorage.setItem("mia-beauty-profile", JSON.stringify({
+                email: data.user.email,
+                id: data.user.id,
+                // If you have first/last name in metadata, you can save it here too:
+                // firstName: data.user.user_metadata?.first_name || "",
+                // lastName: data.user.user_metadata?.last_name || ""
+            }))
+        }
+
         toast({
             title: "Welcome Back!",
             description: "Successfully logged in.",
             duration: 2000,
         })
             
-        router.push("/") // Redirect to home
+        // Redirect to the new Dashboard (or back to home/checkout)
+        router.push("/checkout") 
 
     } catch (error: any) {
         console.error("Login Error:", error)
@@ -58,12 +62,10 @@ export default function LoginPage() {
     } finally {
         setIsLoading(false)
     }
-}
+  }
 
-  // --- 2. UPDATED MAGIC LINK LOGIC ---
   const handleSSO = async (provider: string) => {
     
-    // Check if email field is empty
     if (!formData.email) {
         return toast({
             title: "Email Required",
@@ -76,8 +78,6 @@ export default function LoginPage() {
       setIsLoading(true)
 
       try {
-        // GET CURRENT ORIGIN
-        // Ensure we capture the base URL (e.g., http://localhost:3000 or your-production-site.com)
         const origin = typeof window !== 'undefined' && window.location.origin 
             ? window.location.origin 
             : '';
@@ -85,9 +85,7 @@ export default function LoginPage() {
         const { error } = await supabase.auth.signInWithOtp({
           email: formData.email,
           options: {
-            // CRITICAL: The presence of this property tells Supabase to send a LINK, not a CODE.
-            // When the user clicks the link, they will be redirected back to this URL.
-            emailRedirectTo: `${origin}/`, 
+            emailRedirectTo: `${origin}/account`, 
           }
         })
         
