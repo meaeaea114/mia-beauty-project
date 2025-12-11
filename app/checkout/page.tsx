@@ -6,7 +6,7 @@ import { useCart } from "@/app/context/cart-context"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, ChevronDown, ChevronUp, ShoppingBag, Truck } from "lucide-react" 
+import { ArrowLeft, ChevronDown, ChevronUp, ShoppingBag, Truck, LogOut } from "lucide-react"
 import Link from "next/link"
 
 // --- EXPANDED DATASET FOR PHILIPPINE CITIES ---
@@ -248,6 +248,22 @@ export default function CheckoutPage() {
       setFormData({...formData, [e.target.name]: e.target.value})
   }
 
+  const handleLogout = () => {
+    // 1. Remove profile from storage
+    localStorage.removeItem("mia-beauty-profile")
+    
+    // 2. Reset local state
+    setUser(null)
+    
+    // 3. Clear email from form data so the user can enter a new one
+    setFormData(prev => ({ ...prev, email: "" }))
+    
+    toast({ 
+        title: "Logged out", 
+        description: "You have successfully logged out.",
+    })
+  }
+
   const handleCheckout = (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -416,17 +432,27 @@ export default function CheckoutPage() {
                 {/* 1. CONTACT INFO */}
                 <section className="space-y-4">
                     <div className="flex justify-between items-center">
-                        {/* MODIFIED: Header text color */}
                         <h2 className="text-lg font-bold text-foreground">Contact</h2>
                         {!user && <Link href="/account/login" className="text-xs text-[#AB462F] underline">Log in</Link>}
                     </div>
+                    
                     {user ? (
-                        <div className="p-3 bg-stone-50 dark:bg-black/20 border border-stone-200 dark:border-stone-800 rounded-md text-sm text-foreground">
-                            Logged in as <span className="font-bold text-foreground">{user.email}</span>
+                        <div className="flex items-center justify-between p-3 bg-stone-50 dark:bg-black/20 border border-stone-200 dark:border-stone-800 rounded-md">
+                            <div className="text-sm text-foreground">
+                                <span className="text-stone-500 mr-2">Logged in as</span>
+                                <span className="font-bold">{user.email}</span>
+                            </div>
+                            <button 
+                                type="button"
+                                onClick={handleLogout}
+                                className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-stone-400 hover:text-[#AB462F] transition-colors"
+                            >
+                                <LogOut className="w-3 h-3" />
+                                Log out
+                            </button>
                         </div>
                     ) : (
                         <input name="email" type="email" required placeholder="Email address" 
-                            // MODIFIED: Added dark mode styles for input
                             className="w-full border border-stone-300 dark:border-stone-700 rounded-md px-4 py-3 text-sm focus:border-[#AB462F] outline-none dark:bg-black/20 dark:text-white" 
                             value={formData.email} onChange={handleInputChange} />
                     )}
