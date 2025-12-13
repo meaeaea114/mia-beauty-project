@@ -10,7 +10,7 @@ import { Eye, EyeOff, ArrowRight } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 
 // --- FIREBASE IMPORTS ---
-import { signInWithPopup } from "firebase/auth"
+import { onAuthStateChanged, signInWithPopup } from "firebase/auth"
 import { auth, googleProvider } from "@/lib/firebase"
 
 // 2. Create the inner component that handles all the logic
@@ -103,14 +103,13 @@ function LoginForm() {
   }
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        // User is already logged in, redirect to dashboard
+    // Check if user is already logged in via Firebase
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
         router.replace("/account")
       }
-    }
-    checkUser()
+    })
+    return () => unsubscribe()
   }, [])
   
   return (
