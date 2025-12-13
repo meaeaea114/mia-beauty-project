@@ -1,25 +1,26 @@
 "use client"
 
 import * as React from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react" // 1. Import Suspense
 import Link from "next/link"
-import { useRouter, useSearchParams} from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
-import { Eye, EyeOff, ArrowRight } from "lucide-react" // Removed Mail icon
-import { supabase } from "@/lib/supabase" 
+import { Eye, EyeOff, ArrowRight } from "lucide-react"
+import { supabase } from "@/lib/supabase"
 
 // --- FIREBASE IMPORTS ---
 import { signInWithPopup } from "firebase/auth"
-import { auth, googleProvider } from "@/lib/firebase" 
+import { auth, googleProvider } from "@/lib/firebase"
 
-export default function LoginPage() {
+// 2. Create the inner component that handles all the logic
+function LoginForm() {
   const [formData, setFormData] = useState({ email: "", password: "" })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   
   const router = useRouter()
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams() // This hook requires Suspense
   const { toast } = useToast()
 
   // 1. Existing Supabase Email/Password Login
@@ -72,7 +73,6 @@ export default function LoginPage() {
 
       if (user) {
          // CRITICAL: Save to Local Storage so Checkout page works
-         // We map Firebase's 'uid' to 'id' to match the structure the app expects
          localStorage.setItem("mia-beauty-profile", JSON.stringify({
              email: user.email,
              id: user.uid, 
@@ -114,8 +114,7 @@ export default function LoginPage() {
   }, [])
   
   return (
-    <div className="min-h-screen w-full bg-transparent flex items-center justify-center pt-24 pb-12 px-4">
-        <div className="w-full max-w-[420px] bg-white dark:bg-white/5 border border-stone-100 dark:border-stone-800 shadow-2xl rounded-2xl p-8 md:p-10 relative overflow-hidden">
+    <div className="w-full max-w-[420px] bg-white dark:bg-white/5 border border-stone-100 dark:border-stone-800 shadow-2xl rounded-2xl p-8 md:p-10 relative overflow-hidden">
           
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#AB462F] to-[#E6D5C4]" />
 
@@ -225,6 +224,16 @@ export default function LoginPage() {
           </div>
 
         </div>
+  )
+}
+
+// 3. Export the wrapper component with the Suspense boundary
+export default function LoginPage() {
+  return (
+    <div className="min-h-screen w-full bg-transparent flex items-center justify-center pt-24 pb-12 px-4">
+      <Suspense fallback={<div className="text-stone-500 text-sm">Loading Login...</div>}>
+        <LoginForm />
+      </Suspense>
     </div>
   )
 }
