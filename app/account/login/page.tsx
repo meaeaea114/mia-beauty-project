@@ -1,9 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams} from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { Eye, EyeOff, ArrowRight } from "lucide-react" // Removed Mail icon
@@ -19,6 +19,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
 
   // 1. Existing Supabase Email/Password Login
@@ -46,8 +47,9 @@ export default function LoginPage() {
             description: "Successfully logged in.",
             duration: 2000,
         })
-            
-        router.push("/checkout") 
+        
+        const redirectPath = searchParams.get('redirect') || "/account"
+        router.push(redirectPath) 
 
     } catch (error: any) {
         console.error("Login Error:", error)
@@ -85,7 +87,8 @@ export default function LoginPage() {
          duration: 2000,
       })
 
-      router.push("/checkout")
+      const redirectPath = searchParams.get('redirect') || "/account"
+      router.push(redirectPath)
 
     } catch (error: any) {
       console.error("Google Login Error:", error)
@@ -99,6 +102,17 @@ export default function LoginPage() {
     }
   }
 
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        // User is already logged in, redirect to dashboard
+        router.replace("/account")
+      }
+    }
+    checkUser()
+  }, [])
+  
   return (
     <div className="min-h-screen w-full bg-transparent flex items-center justify-center pt-24 pb-12 px-4">
         <div className="w-full max-w-[420px] bg-white dark:bg-white/5 border border-stone-100 dark:border-stone-800 shadow-2xl rounded-2xl p-8 md:p-10 relative overflow-hidden">
