@@ -9,6 +9,10 @@ import { useToast } from "@/hooks/use-toast"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import { useCart } from "@/app/context/cart-context"
+// AUTH IMPORTS
+import { supabase } from "@/lib/supabase"
+import { auth } from "@/lib/firebase"
+import { signOut } from "firebase/auth"
 
 // --- COMPLETE SEARCH DATA INDEX ---
 const SEARCH_INDEX = [
@@ -60,6 +64,7 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false) // For Mobile Overlay
   const [isSearchFocused, setIsSearchFocused] = useState(false) // For Desktop Dropdown
+  const [isLoggedIn, setIsLoggedIn] = useState(false) // Auth State
 
   const { 
     setIsCartOpen, 
@@ -94,6 +99,33 @@ export function Header() {
       document.documentElement.classList.add("dark")
     }
   }, [])
+
+  // Handle Auth Logic
+  const checkAuth = () => {
+    const user = localStorage.getItem("mia-profile")
+    setIsLoggedIn(!!user)
+  }
+
+  useEffect(() => {
+    checkAuth()
+    window.addEventListener("storage", checkAuth)
+    window.addEventListener("auth-change", checkAuth)
+    return () => {
+        window.removeEventListener("storage", checkAuth)
+        window.removeEventListener("auth-change", checkAuth)
+    }
+  }, [])
+
+  // Handle Logout
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    await signOut(auth)
+    localStorage.removeItem("mia-profile")
+    setIsLoggedIn(false)
+    setIsMobileMenuOpen(false)
+    router.push("/account/login")
+    window.dispatchEvent(new Event("storage"))
+  }
 
   // Search Filter Logic
   useEffect(() => {
@@ -210,21 +242,21 @@ export function Header() {
                                 <p className="text-[9px] font-bold uppercase tracking-widest text-stone-400 px-5 py-2">Products</p>
                                 {results.slice(0, 5).map(item => (
                                     <div 
-                                        key={item.id}
-                                        onMouseDown={(e) => { e.preventDefault(); handleSearchResultClick(item); }}
-                                        className="group flex items-center gap-4 px-5 py-3 hover:bg-[#AB462F]/5 cursor-pointer transition-all duration-200 border-b border-dashed border-stone-100 dark:border-stone-800/50 last:border-0"
+                                            key={item.id}
+                                            onMouseDown={(e) => { e.preventDefault(); handleSearchResultClick(item); }}
+                                            className="group flex items-center gap-4 px-5 py-3 hover:bg-[#AB462F]/5 cursor-pointer transition-all duration-200 border-b border-dashed border-stone-100 dark:border-stone-800/50 last:border-0"
                                     >
-                                        <div className="h-12 w-12 bg-stone-100 dark:bg-white/5 shrink-0 rounded-lg overflow-hidden border border-stone-200 dark:border-white/10 group-hover:border-[#AB462F]/20 transition-colors">
-                                            <img src={item.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={item.name} />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-xs font-bold uppercase truncate text-foreground group-hover:text-[#AB462F] transition-colors">{item.name}</p>
-                                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{item.category}</p>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-xs font-semibold text-foreground">₱{item.price}</span>
-                                            <ChevronRight className="w-3 h-3 text-stone-300 group-hover:text-[#AB462F] group-hover:translate-x-1 transition-all" />
-                                        </div>
+                                            <div className="h-12 w-12 bg-stone-100 dark:bg-white/5 shrink-0 rounded-lg overflow-hidden border border-stone-200 dark:border-white/10 group-hover:border-[#AB462F]/20 transition-colors">
+                                                <img src={item.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={item.name} />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-bold uppercase truncate text-foreground group-hover:text-[#AB462F] transition-colors">{item.name}</p>
+                                                <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{item.category}</p>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-xs font-semibold text-foreground">₱{item.price}</span>
+                                                <ChevronRight className="w-3 h-3 text-stone-300 group-hover:text-[#AB462F] group-hover:translate-x-1 transition-all" />
+                                            </div>
                                     </div>
                                 ))}
                             </>
@@ -238,8 +270,8 @@ export function Header() {
                  </div>
             </div>
 
-            {/* User Icon */}
-            <Link href="/account/login">
+            {/* User Icon - Updated with Auth Logic */}
+            <Link href={isLoggedIn ? "/account" : "/account/login"}>
               <Button variant="ghost" size="icon" className="rounded-full hover:bg-black/5 dark:hover:bg-white/10">
                 <User className="h-5 w-5" />
               </Button>
@@ -326,13 +358,13 @@ export function Header() {
                             <div className="grid grid-cols-1 gap-4">
                                 {results.map((item) => (
                                     <div key={item.id} className="flex gap-4 items-center bg-stone-50 dark:bg-white/5 p-3 rounded-lg" onClick={() => handleSearchResultClick(item)}>
-                                        <div className="h-16 w-16 bg-white shrink-0 rounded overflow-hidden">
-                                            <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-base uppercase">{item.name}</h4>
-                                            <p className="text-xs text-muted-foreground">{item.category} — ₱{item.price}</p>
-                                        </div>
+                                            <div className="h-16 w-16 bg-white shrink-0 rounded overflow-hidden">
+                                                <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-base uppercase">{item.name}</h4>
+                                                <p className="text-xs text-muted-foreground">{item.category} — ₱{item.price}</p>
+                                            </div>
                                     </div>
                                 ))}
                             </div>
@@ -354,11 +386,29 @@ export function Header() {
                 <Link href="#footer" onClick={() => setIsMobileMenuOpen(false)}>About</Link>
             </nav>
             <div className="h-px bg-border w-full" />
-            <div className="flex justify-between items-center">
+            
+            {/* UPDATED MOBILE ACCOUNT SECTION */}
+            <div className="flex flex-col gap-4">
                  <span className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Account</span>
-                 <Link href="/account/login" onClick={() => setIsMobileMenuOpen(false)}>
-                     <Button variant="outline" className="rounded-full text-xs font-bold uppercase">Log In</Button>
-                 </Link>
+                 
+                 {isLoggedIn ? (
+                    <div className="flex flex-col gap-3">
+                        <Link href="/account" onClick={() => setIsMobileMenuOpen(false)}>
+                            <Button variant="outline" className="w-full rounded-full text-xs font-bold uppercase">My Dashboard</Button>
+                        </Link>
+                        <Button 
+                            variant="default" 
+                            className="w-full rounded-full text-xs font-bold uppercase bg-[#AB462F] hover:bg-[#944E45] text-white"
+                            onClick={handleLogout}
+                        >
+                            Sign Out
+                        </Button>
+                    </div>
+                 ) : (
+                     <Link href="/account/login" onClick={() => setIsMobileMenuOpen(false)}>
+                         <Button variant="outline" className="w-full rounded-full text-xs font-bold uppercase">Log In</Button>
+                     </Link>
+                 )}
             </div>
         </div>
       )}

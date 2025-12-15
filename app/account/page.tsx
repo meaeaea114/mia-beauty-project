@@ -9,7 +9,6 @@ import { supabase } from "@/lib/supabase"
 // FIREBASE IMPORTS
 import { auth } from "@/lib/firebase" 
 import { onAuthStateChanged, signOut } from "firebase/auth"
-// FIX: Added 'Lock' to the imports below
 import { LogOut, Package, MapPin, User, ChevronRight, Loader2, X, CheckCircle2, Clock, Truck, Check, Plus, Trash2, Lock } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -91,9 +90,6 @@ interface Order {
     payment_method?: string;
 }
 
-// Helper to check for a basic UUID structure (prevents Firebase UIDs from crashing Supabase UUID column)
-const isUuid = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-
 // --- ORDER TRACKER COMPONENT ---
 const OrderTracker = ({ status }: { status: string }) => {
     const steps = [
@@ -162,7 +158,7 @@ export default function AccountDashboard() {
   const router = useRouter()
   const { toast } = useToast()
 
-  // 1. FIXED AUTH CHECK LOGIC
+  // 1. AUTH CHECK LOGIC
   useEffect(() => {
     let mounted = true
     let firebaseUnsub: any;
@@ -178,14 +174,10 @@ export default function AccountDashboard() {
             const { data: orderData } = await supabase.from('orders')
                 .select('*').eq('customer_email', email).order('created_at', { ascending: false })
             
-            // Fetch Addresses - ONLY FETCH if ID is a Supabase UUID
-            let addressData = []
-            if (isUuid(uid)) { 
-                const { data: fetchedAddresses } = await supabase.from('addresses')
+            // Fetch Addresses - Now attempts fetch for ALL user types (requires user_id column to be TEXT in DB)
+            const { data: fetchedAddresses } = await supabase.from('addresses')
                     .select('*').eq('user_id', uid).order('created_at', { ascending: false })
-                addressData = fetchedAddresses || []
-            }
-
+            const addressData = fetchedAddresses || []
 
             if (mounted) {
                 setOrders(orderData || [])
@@ -291,19 +283,11 @@ export default function AccountDashboard() {
       e.preventDefault()
       
       const userId = user?.id;
-      
-      // CRITICAL FIX: Block non-UUID user IDs (like Firebase UIDs) from inserting into a UUID column.
-      if (!userId || !isUuid(userId)) {
-          toast({ 
-              title: "Error Saving Address", 
-              description: "Address saving is currently only supported for accounts signed up with email/password (Supabase). Please use a different checkout method if logged in via Google.", 
-              variant: "destructive" 
-          });
-          return;
-      }
+      if (!userId) return;
       
       setSavingAddress(true)
       try {
+          // IMPORTANT: This insert will only work for Google Users if 'user_id' column is TEXT type in Supabase
           const { data, error } = await supabase.from('addresses').insert({
               user_id: userId,
               first_name: newAddress.firstName,
@@ -417,13 +401,9 @@ export default function AccountDashboard() {
             <h2 className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Saved Locations</h2>
             <Button 
                 onClick={() => {
-                    if (user?.id && !isUuid(user.id)) {
-                        toast({ title: "Access Denied", description: "Address management requires an email/password account.", variant: "destructive" });
-                    } else {
-                        // Clear the form before opening for a new address
-                        setNewAddress({ firstName: user?.firstName || "", lastName: user?.lastName || "", phone: "", address: "", region: "", province: "", city: "", barangay: "", postalCode: "" });
-                        setShowAddressModal(true);
-                    }
+                    // Clear the form before opening for a new address
+                    setNewAddress({ firstName: user?.firstName || "", lastName: user?.lastName || "", phone: "", address: "", region: "", province: "", city: "", barangay: "", postalCode: "" });
+                    setShowAddressModal(true);
                 }} 
                 size="sm" 
                 className="bg-[#AB462F] hover:bg-[#8f3a26] text-white rounded-full uppercase text-[9px] tracking-widest font-bold h-8"
@@ -432,7 +412,7 @@ export default function AccountDashboard() {
             </Button>
         </div>
         
-        {/* NEW: SAVED ADDRESS DROP-DOWN ALERT BOX */}
+        {/* SAVED ADDRESS DROP-DOWN ALERT BOX */}
         {addresses.length > 0 && (
             <div className="p-4 bg-white dark:bg-black/40 border border-[#AB462F]/20 rounded-xl shadow-sm flex items-center justify-between animate-in fade-in">
                 <div className="flex items-center gap-3">

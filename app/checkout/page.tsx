@@ -169,7 +169,7 @@ export default function CheckoutPage() {
                 .select('*')
                 .eq('user_id', currentUser.id)
                 .order('is_default', { ascending: false })
-                .limit(1)
+                // .limit(1)  <-- REMOVED THIS TO FETCH ALL ADDRESSES
 
             if (addresses && addresses.length > 0) {
                 setSavedAddresses(addresses)
