@@ -14,7 +14,8 @@ export type CartItem = {
 
 type CartContextType = {
   items: CartItem[]
-  addItem: (item: Omit<CartItem, "quantity">) => void
+  // MODIFIED: Accepts optional quantity
+  addItem: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => void
   removeItem: (id: string, variant?: string | null) => void
   updateQuantity: (id: string, variant: string | null | undefined, delta: number) => void
   updateVariant: (id: string, oldVariant: string, newVariant: { name: string, image: string, color: string }) => void
@@ -26,9 +27,6 @@ type CartContextType = {
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
-
-// Helper to get a consistent variant key for comparison. Uses "Standard" as the default fallback string.
-const getVariantKey = (variant: string | null | undefined) => variant || "Standard"
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
@@ -86,34 +84,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [items, isLoaded, userEmail])
 
-  const addItem = (newItem: Omit<CartItem, "quantity">) => {
+  // MODIFIED: Updated to handle quantity
+  const addItem = (newItem: Omit<CartItem, "quantity"> & { quantity?: number }) => {
     setItems((current) => {
       // Fix: Force ID to be string
       const safeId = String(newItem.id)
+      const qtyToAdd = newItem.quantity || 1 // Use provided quantity or default to 1
       
-      // FIX 1: Normalize new variant key to ensure proper accumulation
-      const newVariantKey = getVariantKey(newItem.variant);
-
       const idx = current.findIndex(
-        // FIX 2: Use normalized key for comparison against stored items
-        (item) => item.id === safeId && getVariantKey(item.variant) === newVariantKey
+        (item) => item.id === safeId && item.variant === newItem.variant
       )
-      
       if (idx > -1) {
         const updated = [...current]
-        updated[idx].quantity += 1
+        updated[idx].quantity += qtyToAdd // Add the specific quantity
         return updated
       }
-      
-      // Ensure the added item also has the normalized variant key
-      const itemToAdd: CartItem = { 
-        ...newItem, 
-        id: safeId, 
-        quantity: 1, 
-        variant: newVariantKey // Store the normalized string
-      };
-
-      return [...current, itemToAdd]
+      return [...current, { ...newItem, id: safeId, quantity: qtyToAdd }] // Set initial quantity
     })
     setIsCartOpen(true)
   }

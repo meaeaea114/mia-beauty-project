@@ -48,6 +48,7 @@ export function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
       price: product.price,
       image: activeImage || product.image,
       variant: selectedVariant ? selectedVariant.name : "Standard",
+      quantity: quantity,
     })
 
     toast({
