@@ -18,7 +18,7 @@ export function ShareButtons({ productName }: { productName: string }) {
   }
 
   const handleTwitter = () => {
-    window.open(`https://twitter.com/intent/tweet?text=Check out ${productName} on MIA Beauty!&url=${encodeURIComponent(window.location.href)}`, '_blank')
+    window.open(`https://twitter.com/intent/tweet?text=Check out ${productName} on MIA!&url=${encodeURIComponent(window.location.href)}`, '_blank')
   }
 
   return (

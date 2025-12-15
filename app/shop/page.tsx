@@ -1,3 +1,4 @@
+// app/shop/page.tsx
 "use client"
 export const dynamic = "force-dynamic"
 
@@ -46,7 +47,7 @@ type Category = {
   items: Product[]
 }
 
-// --- Shop Data (YOUR ORIGINAL DATA) ---
+// --- Shop Data (UPDATED: FACE and SKIN merged into FACE & SKIN) ---
 const SHOP_DATA: Category[] = [
   {
     title: "LIPS",
@@ -156,7 +157,7 @@ const SHOP_DATA: Category[] = [
       },
       { 
         id: "l6", 
-        name: "Staygloss", 
+        name: "LIP GLOSS", 
         tagline: "High-shine longwear lip gloss", 
         price: 595, 
         image: "/images/BABYGIRL.png", 
@@ -165,7 +166,7 @@ const SHOP_DATA: Category[] = [
             { name: "Lavish", color: "#A81C26", image: "/images/LAVISH.jpg" },
             { name: "Dainty", color: "#B55A55", image: "/images/DAINTY.png" }
         ],
-        whatItIs: "Staygloss is a high-shine, longwear lip gloss that coats the lips in bold, vibrant color with just one swipe. Infused with nourishing conditioners and color-lock technology, this performance-driven formula cushions the lips while delivering smooth, comfortable, transfer-resistant wear for up to 12 hours.",
+        whatItIs: "Lipgloss is a high-shine, longwear lip gloss that coats the lips in bold, vibrant color with just one swipe. Infused with nourishing conditioners and color-lock technology, this performance-driven formula cushions the lips while delivering smooth, comfortable, transfer-resistant wear for up to 12 hours.",
         whyWeLoveIt: "It’s the gloss that lasts and the comfort you didn’t expect. This advanced, transfer-resistant formula glides effortlessly to create a glassy, lacquered finish that doesn’t budge. Enjoy all-day color, shine, and hydration—without the stickiness.",
         claims: ["12-hour wear", "Budgeproof", "High-Shine Lip Gloss", "Easy to use", "Transfer-resistant", "All day comfort"],
         reviews: 540,
@@ -187,7 +188,7 @@ const SHOP_DATA: Category[] = [
         image: "/images/Rectangle 157.png", 
         colors: ["#F28C98"],
         variants: [
-            { name: "Doll", color: "#F28C98", image: "/images/Rectangle 150.png" }
+            { name: "Doll", color: "#F28C98", image: "/images/Rectangle 157.png" }
         ],
         weight: "2.5 g / 0.09 oz",
         whatItIs: "A soft-focus cheek tint that delivers a subtle, blurred matte flush for effortlessly polished skin.",
@@ -204,7 +205,7 @@ const SHOP_DATA: Category[] = [
         image: "/images/Rectangle 145.png", 
         colors: ["#F49F86"],
         variants: [
-            { name: "Warmth", color: "#F49F86", image: "/images/airblush-peached.jpg" }
+            { name: "Warmth", color: "#F49F86", image: "/images/Rectangle 145.png" }
         ],
         whatItIs: "A two-tone blush that blends effortlessly for a soft, naturally radiant flush.",
         whyWeLoveIt: "Blush with Benefits – our weightless formula is enriched with Macadamia Nut and Camellia extracts plus Vitamins E & D, giving your skin nourishment and protection while leaving a delicate, healthy glow.",
@@ -266,12 +267,14 @@ const SHOP_DATA: Category[] = [
       },
     ]
   },
+  // START MERGED CATEGORY: FACE & SKIN
   {
-    title: "FACE",
-    description: "Your skin, but better. Lightweight bases, serums, and skincare essentials that blur, brighten, and protect.",
-    media: "/vid/Tinted_Moisturizer_Commercial_Video_Creation.mp4", 
+    title: "FACE", // Combined Category Title
+    description: "Your comprehensive routine: lightweight bases, serums, and skincare essentials that blur, brighten, hydrate, and protect.", // Combined Description
+    media: "/vid/Tinted_Moisturizer_Commercial_Video_Creation.mp4", // Kept FACE media as video
     mediaType: "video",
     items: [
+      // FACE items
       { 
         id: "f1", 
         name: "Tinted Moisturizer", 
@@ -280,7 +283,7 @@ const SHOP_DATA: Category[] = [
         image: "/images/Rectangle 147.png", 
         colors: ["#EBEBEB"],
         variants: [
-            { name: "Porcelain", color: "#EBEBEB", image: "/images/Rectangle 68.png" }
+            { name: "Porcelain", color: "#EBEBEB", image: "/images/Rectangle 147.png" }
         ],
         weight: "30 ml",
         whatItIs: "An oil-free tinted moisturizer with SPF 20+ broad-spectrum UVA/UVB protection. Its creamy-jelly formula provides buildable light-to-medium coverage with a natural, blurred matte finish. Enhanced by oil-absorbing powders to keep skin fresh all day.",
@@ -296,7 +299,7 @@ const SHOP_DATA: Category[] = [
         image: "/images/Rectangle 144-1.png", 
         colors: ["#E3C9B0"],
         variants: [
-            { name: "Light", color: "#E3C9B0", image: "/images/Rectangle 80.png" }
+            { name: "Light", color: "#E3C9B0", image: "/images/Rectangle 144-1.png" }
         ],
         weight: "28 ml / 0.94 oz",
         whatItIs: "A multi-use tinted illuminator packed with 82% skincare ingredients, designed to enhance your complexion as a base, highlighter, bronzer, or body glow.",
@@ -356,14 +359,7 @@ const SHOP_DATA: Category[] = [
         reviews: 190,
         rating: 4.8
       },
-    ]
-  },
-  {
-    title: "SKIN",
-    description: "Nourishing, high-performance skincare designed to hydrate, protect, and enhance your natural glow.",
-    media: "/images/Rectangle 80.png", 
-    mediaType: "image",
-    items: [
+      // SKIN items
       { 
         id: "f3", 
         name: "Dream Cream", 
@@ -418,6 +414,7 @@ const SHOP_DATA: Category[] = [
       },
     ]
   },
+  // END MERGED CATEGORY
   {
     title: "EYES",
     description: "Captivate at a glance. From precise liners to volumizing mascaras, define your look with high-impact pigments.",
@@ -537,7 +534,7 @@ const SHOP_DATA: Category[] = [
         image: "/images/Rectangle 144-7.png", 
         colors: ["#5D4037"],
         variants: [
-            { name: "Brown", color: "#5D4037", image: "/images/brows.jpg" }
+            { name: "Brown", color: "#5D4037", image: "/images/Rectangle 144-7.png" }
         ],
         weight: "4.5 g / 0.16 oz",
         whatItIs: "A long-wearing grooming gel that shapes and sets your brows with ease.",
@@ -554,7 +551,7 @@ const SHOP_DATA: Category[] = [
         image: "/images/Rectangle 144-8.png", 
         colors: ["#4A403A"],
         variants: [
-            { name: "Taupe", color: "#4A403A", image: "/images/brows.jpg" }
+            { name: "Taupe", color: "#4A403A", image: "/images/Rectangle 144-8.png" }
         ],
         weight: "7.5 g / 0.3 oz",
         whatItIs: "Lifebrow Micromarker is a long-wearing liquid brow detailing pen with an ultra-fine brush tip that delivers precise, natural, hair-like strokes. Its smudgeproof, sweatproof, and waterproof formula keeps your brows in place all day.",
@@ -571,7 +568,7 @@ const SHOP_DATA: Category[] = [
         image: "/images/Rectangle 146-3.png", 
         colors: ["#4A403A"],
         variants: [
-            { name: "Taupe", color: "#4A403A", image: "/images/brows.jpg" }
+            { name: "Taupe", color: "#4A403A", image: "/images/Rectangle 146-3.png" }
         ],
         weight: "0.08 g / 0.003 oz",
         whatItIs: "A precision pomade pencil designed to shape, define, and naturally fill in your brows.",
@@ -621,10 +618,14 @@ const ShopCard = ({ product, onClick, onAdd }: { product: Product, onClick: () =
 
       {/* 2. Text Details - Below Image, Centered */}
       <div className="flex flex-col items-center text-center gap-1.5 px-2">
-        <h3 className="font-extrabold text-sm uppercase tracking-wider text-stone-900">{product.name}</h3>
+        {/* FIX: Matched Best Sellers product name style */}
+        <h3 className="font-black text-lg uppercase tracking-tight text-foreground leading-none group-hover:text-[#AB462F] transition-colors">
+            {product.name}
+        </h3>
         
         {/* Serif Italic Tagline */}
-        <p className="font-serif italic text-xs text-stone-500 tracking-wide line-clamp-1">
+        {/* FIX: Matched Best Sellers tagline style (added font-medium) */}
+        <p className="font-serif italic text-xs text-stone-500 dark:text-stone-400 font-medium tracking-wide line-clamp-1">
             {product.tagline}
         </p>
 
@@ -751,7 +752,8 @@ function ShopContent() {
                  <div className="flex justify-between items-end mb-4">
                     <div>
                         <span className="text-xs font-bold tracking-widest uppercase text-stone-500 mb-2 block">Search Results For</span>
-                        <h1 className="text-4xl md:text-6xl font-black tracking-tighter uppercase text-stone-900">
+                        {/* FIX: Match Best Sellers header size and color */}
+                        <h1 className="text-6xl md:text-8xl font-black tracking-tighter uppercase text-[#1a1a1a] dark:text-white leading-[0.85]">
                         "{searchQuery}"
                         </h1>
                     </div>
@@ -782,10 +784,12 @@ function ShopContent() {
             
             {/* --- INTRODUCTORY TEXT (Added Feature) --- */}
             <div className="text-center mb-16 max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-6">
+                {/* FIX: Match Best Sellers header size and color */}
+                <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter mb-6 text-[#1a1a1a] dark:text-white leading-[0.85]">
                     Shop All
                 </h1>
-                <p className="text-lg text-stone-500 font-light leading-relaxed">
+                {/* FIX: Match Best Sellers description style (font-medium) */}
+                <p className="text-lg text-stone-500 dark:text-stone-300 font-medium leading-relaxed">
                     Explore our complete collection of consciously crafted beauty essentials. 
                     From breathable skincare to high-impact pigments, find everything you need 
                     to enhance your natural radiance.
@@ -801,10 +805,12 @@ function ShopContent() {
                     <div className="w-full bg-[#EFECE5] rounded-[40px] overflow-hidden mb-20 flex flex-col md:flex-row min-h-[380px] shadow-sm">
                         {/* Left: Text Content */}
                         <div className="flex-1 p-10 md:p-16 flex flex-col justify-center items-start">
-                            <h2 className="text-7xl md:text-8xl font-black text-stone-900 uppercase tracking-tighter mb-6 leading-none">
+                            {/* FIX: Set light mode text color to dark and dark mode to white */}
+                            <h2 className="text-7xl md:text-8xl font-black text-[#1a1a1a] dark:text-white uppercase tracking-tighter mb-6 leading-none">
                                 {category.title}
                             </h2>
-                            <p className="text-stone-600 text-sm md:text-base font-medium max-w-sm leading-relaxed">
+                            {/* FIX: Set light mode text color to dark gray and dark mode to stone-300 */}
+                            <p className="text-stone-600 dark:text-stone-300 text-sm md:text-base font-medium max-w-sm leading-relaxed">
                                 {category.description}
                             </p>
                         </div>

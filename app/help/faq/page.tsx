@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion"
 const FAQS = [
   {
     question: "Are your products cruelty-free?",
-    answer: "Yes! MIA Beauty is 100% cruelty-free. We do not test on animals at any stage of product development, and we only work with vendors who uphold the same standards. We believe beauty should be kind."
+    answer: "Yes! MIA is 100% cruelty-free. We do not test on animals at any stage of product development, and we only work with vendors who uphold the same standards. We believe beauty should be kind."
   },
   {
     question: "How do I choose the right shade?",
@@ -16,7 +16,7 @@ const FAQS = [
   },
   {
     question: "Do you ship internationally?",
-    answer: "Currently, we ship exclusively within the Philippines. We deliver nationwide—from Metro Manila to provincial areas. We are working hard to bring MIA Beauty to the rest of the world soon!"
+    answer: "Currently, we ship exclusively within the Philippines. We deliver nationwide—from Metro Manila to provincial areas. We are working hard to bring MIA to the rest of the world soon!"
   },
   {
     question: "What is your return policy?",

@@ -36,7 +36,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // 1. Identify User
   useEffect(() => {
     const checkUser = () => {
-      const profile = localStorage.getItem("mia-beauty-profile")
+      const profile = localStorage.getItem("mia-profile")
       if (profile) {
         try {
           const { email } = JSON.parse(profile)

@@ -68,7 +68,7 @@ const BEST_SELLERS: Product[] = [
     image: "/images/Rectangle 157.png", 
     colors: ["#F28C98"],
     variants: [
-        { name: "Doll", color: "#F28C98", image: "/images/Rectangle 150.png" }
+        { name: "Doll", color: "#F28C98", image: "/images/Rectangle 157.png" }
     ],
     weight: "2.5 g / 0.09 oz",
     whatItIs: "A soft-focus cheek tint that delivers a subtle, blurred matte flush for effortlessly polished skin.",
@@ -144,7 +144,7 @@ const BEST_SELLERS: Product[] = [
     image: "/images/Rectangle 144-7.png", 
     colors: ["#5D4037"],
     variants: [
-        { name: "Brown", color: "#5D4037", image: "/images/brows.jpg" }
+        { name: "Brown", color: "#5D4037", image: "/images/Rectangle 144-7.png" }
     ],
     weight: "4.5 g / 0.16 oz",
     whatItIs: "A long-wearing grooming gel that shapes and sets your brows with ease.",
@@ -162,7 +162,7 @@ const BEST_SELLERS: Product[] = [
     image: "/images/Rectangle 147.png", 
     colors: ["#EBEBEB"],
     variants: [
-        { name: "Porcelain", color: "#EBEBEB", image: "/images/Rectangle 68.png" }
+        { name: "Porcelain", color: "#EBEBEB", image: "/images/Rectangle 147.png" }
     ],
     weight: "30 ml",
     whatItIs: "An oil-free tinted moisturizer with SPF 20+ broad-spectrum UVA/UVB protection. Its creamy-jelly formula provides buildable light-to-medium coverage with a natural, blurred matte finish. Enhanced by oil-absorbing powders to keep skin fresh all day.",

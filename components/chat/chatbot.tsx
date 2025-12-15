@@ -1,3 +1,4 @@
+// chatbot.tsx
 "use client"
 
 import * as React from "react"
@@ -63,7 +64,7 @@ const STRINGS = {
     opt_shade: "Find my Shade 💄",
     opt_track: "Track Order 📦",
     opt_skin: "Skin Consultation 🧴",
-    opt_agent: "Talk to Human 👩‍💻",
+    // REMOVED: opt_agent: "Talk to Human 👩‍💻",
     quiz_skin: "Let's find your match! What is your skin type?",
     quiz_concern: "What is your main skin concern?",
     rec_header: "Based on your profile, I recommend:",
@@ -83,7 +84,7 @@ const STRINGS = {
     opt_shade: "Hanapin ang Shade ko 💄",
     opt_track: "Status ng Order 📦",
     opt_skin: "Skin Consultation 🧴",
-    opt_agent: "Makausap ang Tao 👩‍💻",
+    // REMOVED: opt_agent: "Makausap ang Tao 👩‍💻",
     quiz_skin: "Hanapin natin ang perfect match mo! Ano ang skin type mo?",
     quiz_concern: "Ano ang main concern mo sa balat?",
     rec_header: "Base sa profile mo, ito ang bagay sayo:",
@@ -121,8 +122,8 @@ export function Chatbot() {
   const [messages, setMessages] = useState<Message[]>([])
   const [language, setLanguage] = useState<'en' | 'fil'>('en')
   
-  // State Machine
-  const [mode, setMode] = useState<'idle' | 'quiz' | 'tracking' | 'return' | 'live_agent'>('idle')
+  // State Machine - REMOVED 'live_agent'
+  const [mode, setMode] = useState<'idle' | 'quiz' | 'tracking' | 'return'>('idle')
   const [userProfile, setUserProfile] = useState<UserProfile>({})
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -136,12 +137,12 @@ export function Chatbot() {
   // --- 3. Persistence & Init ---
   useEffect(() => {
     // Load profile
-    const saved = localStorage.getItem('mia-beauty-profile')
+    const saved = localStorage.getItem('mia-profile')
     if (saved) setUserProfile(JSON.parse(saved))
   }, [])
 
   useEffect(() => {
-    if (userProfile.skinType) localStorage.setItem('mia-beauty-profile', JSON.stringify(userProfile))
+    if (userProfile.skinType) localStorage.setItem('mia-profile', JSON.stringify(userProfile))
   }, [userProfile])
 
   useEffect(() => {
@@ -189,7 +190,7 @@ export function Chatbot() {
           { label: t.opt_shade, action: "find_shade" },
           { label: t.opt_track, action: "track_order" },
           { label: "Return/Refund", action: "start_return" },
-          { label: t.opt_agent, action: "handoff_agent" },
+          // REMOVED: { label: t.opt_agent, action: "handoff_agent" },
         ]
       }])
       setIsTyping(false)
@@ -277,14 +278,14 @@ export function Chatbot() {
         addBotMessage("Great! You are eligible for a full refund or shade exchange. Please enter your Order ID to proceed.")
         break
 
-      // --- Human Handoff ---
-      case 'handoff_agent':
-        setMode('live_agent')
-        addBotMessage(t.agent_connect)
-        setTimeout(() => {
-          setMessages(prev => [...prev, { id: "agent_joined", role: 'bot', text: "👩‍💼 " + t.agent_active, type: 'text' }])
-        }, 3000)
-        break
+      // --- Human Handoff (REMOVED BLOCK) ---
+      // case 'handoff_agent':
+      //   setMode('live_agent')
+      //   addBotMessage(t.agent_connect)
+      //   setTimeout(() => {
+      //     setMessages(prev => [...prev, { id: "agent_joined", role: 'bot', text: "👩‍💼 " + t.agent_active, type: 'text' }])
+      //   }, 3000)
+      //   break
 
       // --- Tutorial ---
       case 'show_tutorial':
@@ -352,13 +353,7 @@ export function Chatbot() {
     const lower = inputValue.toLowerCase()
     setInputValue("")
 
-    if (mode === 'live_agent') {
-      // Simulate agent reply
-      setTimeout(() => {
-         setMessages(prev => [...prev, { id: Date.now().toString(), role: 'agent', text: "I can certainly help with that. Let me check your account details.", type: 'text' }])
-      }, 2000)
-      return
-    }
+    // REMOVED: if (mode === 'live_agent') block
 
     if (mode === 'tracking' || /#?MIA\d+/.test(inputValue.toUpperCase())) {
       const id = inputValue.toUpperCase().match(/#?MIA\d+/)?.[0] || "#MIA999"
@@ -367,16 +362,18 @@ export function Chatbot() {
       return
     }
 
-    // Keyword Detection
-    if (lower.includes('human') || lower.includes('agent') || lower.includes('support')) {
-      handleAction('handoff_agent')
-      return
-    }
-
+    // Keyword Detection - MODIFIED to remove 'human' and 'agent' detection and the call to handoff_agent
     if (lower.includes('tutorial') || lower.includes('how to')) {
       handleAction('show_tutorial')
       return
     }
+    
+    // Fallback response for previously handled keywords
+    if (lower.includes('human') || lower.includes('agent') || lower.includes('support')) {
+        addBotMessage("I'm sorry, I cannot connect you to a human agent at this time. How else can I help?")
+        return
+    }
+
 
     if (lower.includes('bundle') || lower.includes('set')) {
        const bundles = PRODUCT_KNOWLEDGE.filter(p => p.category === 'bundle')
@@ -431,13 +428,14 @@ export function Chatbot() {
             <div className="bg-[#AB462F] p-4 flex items-center justify-between text-white shrink-0 shadow-md">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm relative">
-                   {mode === 'live_agent' ? <User className="h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
+                   {/* mode is now 'idle', 'quiz', 'tracking', or 'return'. Only 'idle' is the standard bot. */}
+                   {mode === 'idle' ? <Sparkles className="h-5 w-5" /> : <User className="h-5 w-5" />} 
                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-400 border border-[#AB462F] rounded-full"></span>
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm uppercase tracking-wider">{mode === 'live_agent' ? 'Sarah (Agent)' : 'Mia Assistant'}</h3>
+                  <h3 className="font-bold text-sm uppercase tracking-wider">{mode === 'idle' ? 'Mia Assistant' : 'Mia Assistant'}</h3>
                   <div className="flex items-center gap-1 opacity-90">
-                    <span className="text-[10px] font-medium opacity-80">{mode === 'live_agent' ? 'Active Now' : 'Automated'}</span>
+                    <span className="text-[10px] font-medium opacity-80">Automated</span>
                   </div>
                 </div>
               </div>
@@ -458,14 +456,13 @@ export function Chatbot() {
                    key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                  >
-                   {msg.role === 'agent' && <div className="w-6 h-6 rounded-full bg-stone-300 mr-2 flex items-center justify-center text-[10px] font-bold">AG</div>}
+                   {/* Removed agent icon condition */}
                    
                    <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
                        msg.role === 'user' 
                          ? 'bg-[#AB462F] text-white rounded-br-none' 
-                         : msg.role === 'agent'
-                           ? 'bg-blue-50 text-blue-900 border border-blue-100 rounded-bl-none'
-                           : 'bg-white dark:bg-white/10 text-stone-800 dark:text-stone-200 rounded-bl-none border border-stone-100 dark:border-stone-800'
+                         // Agent style is no longer applicable, consolidating to bot style
+                         : 'bg-white dark:bg-white/10 text-stone-800 dark:text-stone-200 rounded-bl-none border border-stone-100 dark:border-stone-800'
                      }`}>
                      {/* Alert / Warning Icon */}
                      {msg.text.includes("⚠️") && <AlertCircle className="inline w-4 h-4 mr-1 text-orange-500" />}
@@ -534,7 +531,8 @@ export function Chatbot() {
             <form onSubmit={handleInputSubmit} className="p-3 bg-white dark:bg-[#1a1a1a] border-t border-stone-200 dark:border-stone-800 flex gap-2 shrink-0">
                <input 
                  type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)}
-                 placeholder={mode === 'live_agent' ? "Message Sarah..." : t.help_prompt}
+                 // Placeholder simplified as live_agent mode no longer exists
+                 placeholder={t.help_prompt}
                  className="flex-1 bg-stone-100 dark:bg-white/5 border-transparent focus:border-[#AB462F] focus:ring-0 rounded-full px-4 py-2 text-sm outline-none transition-all placeholder:text-stone-400"
                />
                <Button type="submit" size="icon" disabled={!inputValue.trim()} className="rounded-full bg-[#AB462F] hover:bg-[#944E45] w-10 h-10 shrink-0">

@@ -1,3 +1,4 @@
+// app/beauty-landing.tsx
 "use client"
 
 import * as React from "react"
@@ -15,15 +16,92 @@ import { ProductModal } from "@/components/shop/product-modal"
 import type { Product } from "@/app/shop/page" 
 
 // --- Data Constants ---
-const STAYGLOSS_VARIANTS = [
-  { id: 101, formula: "Chiffon", shade: "carnation pink", price: 395, image: "/images/Rectangle 87.png" },
-  { id: 102, formula: "Cashmere", shade: "dusty pink", price: 395, image: "/images/Rectangle 91.png" },
-  { id: 103, formula: "Suede", shade: "toasty nude", price: 395, image: "/images/Rectangle 99.png" },
-  { id: 104, formula: "Silk", shade: "mauve nude", price: 395, image: "/images/Rectangle 93.png" },
-  { id: 105, formula: "Satin", shade: "peachy rose", price: 395, image: "/images/Rectangle 99.png" },
-  { id: 106, formula: "Velvet", shade: "berry mauve", price: 395, image: "/images/Rectangle 97.png" },
-  { id: 107, formula: "Rouge", shade: "rosy pink", price: 395, image: "/images/Rectangle 101.png" },
+// Synced rich data for the 7 variants, including colors for visual representation.
+const STAYGLOSS_VARIANTS_RICH = [
+    { name: "Chiffon", color: "#D8A0A0", image: "/images/Rectangle 87.png", shade: "carnation pink" },
+    { name: "Cashmere", color: "#C08080", image: "/images/Rectangle 91.png", shade: "dusty pink" },
+    { name: "Suede", color: "#9E7B77", image: "/images/Rectangle 99.png", shade: "toasty nude" },
+    { name: "Silk", color: "#A66E6A", image: "/images/Rectangle 93.png", shade: "mauve nude" },
+    { name: "Satin", color: "#E09A9A", image: "/images/Rectangle 99.png", shade: "peachy rose" },
+    { name: "Velvet", color: "#804040", image: "/images/Rectangle 97.png", shade: "berry mauve" },
+    { name: "Rouge", color: "#D05050", image: "/images/Rectangle 101.png", shade: "rosy pink" },
 ];
+
+// Update STAYGLOSS_VARIANTS to be used by the map function in ShadeCollection
+const STAYGLOSS_VARIANTS = STAYGLOSS_VARIANTS_RICH.map((v, i) => ({
+    id: 101 + i, 
+    formula: v.name, 
+    shade: v.shade, 
+    price: 395, 
+    image: v.image,
+    name: v.name
+}));
+
+// --- SYNCHRONIZED PRODUCT DATA (From app/shop/page.tsx, enriched with all 7 Staygloss shades) ---
+const getProductDetails = (id: string): Product | undefined => {
+    const SHOP_DATA_FLAT: Product[] = [
+        // LIPS (l1 is Fluffmatte - Used in Look)
+        { 
+          id: "l1", name: "Fluffmatte", tagline: "Weightless modern matte lipstick", price: 399, image: "/images/Rectangle 131.png", colors: ["#B55A55", "#D67F68", "#E8A69D", "#A81C26", "#944E45"],
+          variants: [{ name: "Girl Crush", color: "#B55A55", image: "/images/Girl Crush.png" }, { name: "Brunette", color: "#D67F68", image: "/images/Brunette.png" }, { name: "Nudist", color: "#E8A69D", image: "/images/Nudist.png" }, { name: "Casual", color: "#A81C26", image: "/images/Casual.png" }, { name: "Baked", color: "#944E45", image: "/images/Baked.png" }],
+          weight: "3.2 g / 0.11 oz", whatItIs: "A modern matte lipstick reinvented for everyday wear. Fluffmatte glides on effortlessly, delivering smooth, even pigment with a second-skin feel.", whyWeLoveIt: "Fluffmatte comes in 7 curated shades — a versatile lineup of flattering mauves, neutrals, and bold tones designed to complement a wide range of undertones. Each shade melts into the lips with a velvety finish that never feels heavy. Our soft-focus formula cushions the lips, offering comfortable wear that blurs lines and leaves a plush, diffused look all day.", claims: ["Easy to use", "Paraben-free", "Non-drying", "Cruelty-free", "High impact color", "Fragrance-free"], reviews: 3200, rating: 4.9, category: "Lips"
+        },
+        // CHEEKS (c5 is Glow On - Used in Hero)
+        { 
+            id: "c5", name: "Glow On", tagline: "Light catching liquid highlighter", price: 359, image: "/images/Rectangle 145-1.png", 
+            colors: ["#E8DCCA", "#E3C9B0", "#D67F68"], 
+            variants: [
+                { name: "Stellar", color: "#E8DCCA", image: "/images/STELLAR.jpg" },
+                { name: "Saturn", color: "#E3C9B0", image: "/images/SATURN.jpg" },
+                { name: "Moondust", color: "#D67F68", image: "/images/MOONDUST.jpg" }
+            ],
+            weight: "40 g / 1.4 oz", whatItIs: "A lightweight liquid highlighter that nourishes the skin while delivering a soft, ethereal glow.", whyWeLoveIt: "The silky gel formula glides smoothly and builds to your preferred intensity. Light-reflecting superfine pigments give a luminous, refined glow without glitter, elevating any makeup look with sophistication.", claims: ["Long lasting", "Paraben Free", "Buildable + Blendable", "Cruelty Free", "Easy to use", "Fragrance Free"], reviews: 410, rating: 4.6, category: "Cheeks"
+        },
+        { 
+            id: "c3", name: "Blush On", tagline: "Long-wearing cheek pigment", price: 359, image: "/images/Rectangle 146.png", 
+            colors: ["#C67D6F", "#F28C98", "#F49F86"], 
+            variants: [
+                { name: "Sunset", color: "#C67D6F", image: "/images/Image 12-2-25 at 12.32 PM.jpeg" },
+                { name: "Petal", color: "#F28C98", image: "/images/Image 12-2-25 at 12.35 PM.jpeg" },
+                { name: "Coral", color: "#F49F86", image: "/images/Image 12-2-25 at 12.28 PM (1).jpeg" }
+            ],
+            weight: "40 g / 1.4 oz", whatItIs: "A long-lasting liquid blush with rich pigment that melts seamlessly into the skin. Its silky serum tint formula melts into the skin and sets for lasting color. Enriched with our signature Radiant Blend of flower-powered ingredients, it soothes, hydrates, and nourishes.", whyWeLoveIt: "Blush On delivers a weightless, fresh flush without the heaviness. It builds beautifully, leaving cheeks radiant and flawless from morning to night.", claims: ["Long lasting", "Paraben Free", "Buildable + Blendable", "Cruelty Free", "Easy to use", "Fragrance Free"], reviews: 670, rating: 4.9, category: "Cheeks"
+        },
+        // FACE (f1 is Tinted Moisturizer - Used in Look)
+        { 
+            id: "f1", name: "Tinted Moisturizer", tagline: "Oil-free base", price: 430, image: "/images/Rectangle 147.png", 
+            colors: ["#EBEBEB"], 
+            variants: [
+                { name: "Porcelain", color: "#EBEBEB", image: "/images/Rectangle 147.png" }
+            ],
+            weight: "30 ml", whatItIs: "An oil-free tinted moisturizer with SPF 20+ broad-spectrum UVA/UVB protection. Its creamy-jelly formula provides buildable light-to-medium coverage with a natural, blurred matte finish. Enhanced by oil-absorbing powders to keep skin fresh all day.", whyWeLoveIt: "Blends effortlessly for an even, healthy-looking complexion while offering 95% sun protection. Made with 75% naturally derived ingredients, it hydrates, smooths, and improves skin over time. Dermatologically approved and safe for sensitive skin, it’s the ultimate everyday essential.", reviews: 820, rating: 4.8, category: "Face"
+        },
+        // BROWS (b1 is Grooming Gel - Used in Hero and Look)
+        { 
+            id: "b1", name: "Grooming Gel", tagline: "Effortless sculpting gel", price: 389, image: "/images/Rectangle 144-7.png", 
+            colors: ["#5D4037"], 
+            variants: [
+                { name: "Brown", color: "#5D4037", image: "/images/Rectangle 144-7.png" }, 
+                { name: "Black", color: "#262626", image: "/images/Rectangle 144-7.png" }
+            ],
+            weight: "4.5 g / 0.16 oz", whatItIs: "A long-wearing grooming gel that shapes and sets your brows with ease.", whyWeLoveIt: "The wax-gel hybrid formula tints, lifts, and adds fullness for effortlessly polished brows. With all-day hold and a precise spoolie, simply brush upward to achieve a soft, feathered finish that stays in place.", claims: ["Long wear", "Paraben free", "Smudge-proof", "Cruelty free", "Water-resistant", "Fragrance free"], reviews: 890, rating: 4.7, category: "Brows"
+        },
+        // LIPS (l6 is Staygloss - Used in Hero and Shade Collection)
+        { 
+            id: "l6", name: "Staygloss", tagline: "Plumping high shine gloss stick", price: 595, image: "/images/BABYGIRL.png", 
+            // FIX: Inject all 7 variant details for the Shade Collection here
+            colors: STAYGLOSS_VARIANTS_RICH.map(v => v.color),
+            variants: STAYGLOSS_VARIANTS_RICH.map(v => ({ 
+                name: v.name, 
+                color: v.color, 
+                image: v.image,
+                tagline: v.shade // Add shade info here for better modal description
+            })),
+            whatItIs: "Staygloss is a high-shine, longwear lip gloss that coats the lips in bold, vibrant color with just one swipe. Infused with nourishing conditioners and color-lock technology, this performance-driven formula cushions the lips while delivering smooth, comfortable, transfer-resistant wear for up to 12 hours.", whyWeLoveIt: "It’s the gloss that lasts and the comfort you didn’t expect. This advanced, transfer-resistant formula glides effortlessly to create a glassy, lacquered finish that doesn’t budge. Enjoy all-day color, shine, and hydration—without the stickiness.", claims: ["12-hour wear", "Budgeproof", "High-Shine Lip Gloss", "Easy to use", "Transfer-resistant", "All day comfort"], reviews: 540, rating: 4.9, category: "Lips"
+        },
+    ];
+    return SHOP_DATA_FLAT.find(p => p.id === id);
+}
 
 // --- Helper Components ---
 const Hotspot = ({ top, left, label, onClick, align = "right" }: any) => {
@@ -47,11 +125,13 @@ const Hotspot = ({ top, left, label, onClick, align = "right" }: any) => {
 
 // --- 1. HERO SECTION (RESPONSIVE) ---
 const HeroSection = ({ onOpenProduct }: { onOpenProduct: (product: Product) => void }) => {
+  // Use getProductDetails to retrieve rich data
   const HERO_PRODUCTS: Product[] = [
-      { id: "l6", name: "Staygloss", tagline: "High-shine longwear lip gloss", price: 595, image: "/images/Rectangle 141.png", colors: ["#A81C26", "#B55A55"], variants: [{ name: "Sizzle", color: "#A81C26", image: "/images/Rectangle 141.png" }, { name: "Glaze", color: "#B55A55", image: "/images/Rectangle 141.png" }] },
-      { id: "c5", name: "Glow On", tagline: "Light catching liquid highlighter", price: 359, image: "/images/Rectangle 145-1.png", colors: ["#E8DCCA", "#E3C9B0", "#D67F68"], variants: [{ name: "Champagne", color: "#E8DCCA", image: "/images/Rectangle 145-1.png" }, { name: "Gold", color: "#E3C9B0", image: "/images/Rectangle 145-1.png" }, { name: "Bronze", color: "#D67F68", image: "/images/Rectangle 145-1.png" }] }, 
-      { id: "b1", name: "Grooming Gel", tagline: "Effortless sculpting gel", price: 389, image: "/images/Rectangle 144-7.png", colors: ["#5D4037", "#262626"], variants: [{ name: "Brown", color: "#5D4037", image: "/images/Rectangle 144-7.png" }, { name: "Black", color: "#262626", image: "/images/Rectangle 144-7.png" }] }
-  ];
+      getProductDetails("l6") || {} as Product, 
+      getProductDetails("c5") || {} as Product, 
+      getProductDetails("b1") || {} as Product
+  ].filter(p => p.id);
+
 
   return (
       // MODIFIED: Added dark mode background color to match body theme variable for smoothness
@@ -132,15 +212,18 @@ const CategoryGrid = () => (
 )
 
 // --- 3. SHADE COLLECTION (RESPONSIVE) ---
-const ShadeCollection = () => {
+const ShadeCollection = ({ onOpenProduct }: { onOpenProduct: (product: Product) => void }) => {
     const router = useRouter()
+    // Get the full Staygloss product object once for use in the modal
+    const STAYGLOSS_PRODUCT = React.useMemo(() => getProductDetails('l6'), []);
+
     return (
         // MODIFIED: Background is now fully transparent (bg-transparent) as requested.
         <section className="w-full py-16 md:py-24 bg-transparent relative overflow-hidden 
             border-t-4 border-b-4 border-stone-200/50 dark:border-stone-800/50 border-double"
         >
             <div className="absolute top-20 left-0 w-full text-center pointer-events-none select-none opacity-[0.03] overflow-hidden">
-                <h1 className="text-[20vw] md:text-[15vw] font-black uppercase leading-none text-foreground whitespace-nowrap">The Shades</h1>
+                <h1 className="text-[20vw] md:text-[15vw] font-black uppercase leading-none text-foreground whitespace-nowrap">STAYGLOSS</h1>
             </div>
             <div className="container mx-auto px-4 md:px-8 relative z-10">
                 <div className="flex flex-col md:flex-row justify-between items-end mb-10 md:mb-16 border-b border-stone-200 dark:border-white/10 pb-6">
@@ -158,7 +241,14 @@ const ShadeCollection = () => {
                         <div 
                             key={gloss.id} 
                             className="w-[200px] md:w-[260px] flex-shrink-0 snap-center group cursor-pointer"
-                            onClick={() => router.push('/shop#lips')}
+                            // FIX: Changed click action to open the modal with the full product details
+                            onClick={() => {
+                                if (STAYGLOSS_PRODUCT) {
+                                    onOpenProduct(STAYGLOSS_PRODUCT);
+                                } else {
+                                    router.push('/shop#lips'); // Fallback
+                                }
+                            }}
                         >
                              {/* Keep the product cards opaque for contrast against the textured background */}
                              <div className="aspect-[3/4] w-full bg-white dark:bg-white/5 relative overflow-hidden mb-6 border border-stone-100 dark:border-white/10 transition-all duration-500 group-hover:shadow-2xl group-hover:border-[#AB462F]/20">
@@ -182,12 +272,13 @@ const ShadeCollection = () => {
 
 // --- 4. SHOP THE LOOK (RESPONSIVE) ---
 const ShopTheLookSection = ({ onOpenModal }: { onOpenModal: (item: Product) => void }) => {
+    // Use getProductDetails to retrieve rich data
     const LOOK_PRODUCTS: Product[] = [
-      { id: "look-tint", name: "Tinted Moisturizer", tagline: "oil-free tint", price: 430, image: "/images/Rectangle 147.png", colors: ["#EBEBEB"], variants: [{ name: "Porcelain", color: "#EBEBEB", image: "/images/Rectangle 68.png" }] },
-      { id: "look-blush", name: "Blush On", tagline: "cheek pigment", price: 359, image: "/images/Rectangle 146.png", colors: ["#C67D6F", "#F28C98", "#F49F86"], variants: [{ name: "Sunset", color: "#C67D6F", image: "/images/Rectangle 146.png" }, { name: "Petal", color: "#F28C98", image: "/images/Rectangle 146.png" }, { name: "Coral", color: "#F49F86", image: "/images/Rectangle 146.png" }] },
-      { id: "look-brow", name: "Grooming Gel", tagline: "grooming gel", price: 389, image: "/images/Rectangle 144-7.png", colors: ["#5D4037", "#262626"], variants: [{ name: "Brown", color: "#5D4037", image: "/images/Rectangle 144-7.png" }, { name: "Black", color: "#262626", image: "/images/Rectangle 144-7.png" }] },
-      { id: "look-lip", name: "Fluffmatte", tagline: "matte lipstick", price: 399, image: "/images/Rectangle 131.png", colors: ["#B55A55", "#D67F68", "#E8A69D", "#A81C26", "#944E45"], variants: [{ name: "Girl Crush", color: "#B55A55", image: "/images/Rectangle 129.png" }, { name: "Vacay", color: "#D67F68", image: "/images/Rectangle 129.png" }, { name: "Milkshake", color: "#E8A69D", image: "/images/Rectangle 129.png" }, { name: "Major", color: "#A81C26", image: "/images/Rectangle 129.png" }, { name: "Baked", color: "#944E45", image: "/images/Rectangle 129.png" }] },
-    ];
+        getProductDetails("f1") || {} as Product, 
+        getProductDetails("c3") || {} as Product, 
+        getProductDetails("b1") || {} as Product, 
+        getProductDetails("l1") || {} as Product
+    ].filter(p => p.id);
     
     return (
         // MODIFIED: Changed from high opacity/solid to semi-transparent
@@ -298,7 +389,7 @@ const PressSection = () => (
                       </div>
                       <h3 className="font-serif italic text-4xl text-[#1a1a1a] dark:text-white mb-4">Allure</h3>
                       <p className="text-sm text-stone-500 font-light leading-relaxed max-w-xs mx-auto">
-                          "Filipino makeup brand <strong className="font-bold text-[#AB462F]">MIA</strong> makes just one lipstick and it's constantly selling out."
+                          "Filipino makeup brand <strong className="font-bold text-[#AB462F]">MIA</strong> is loved for its easy-to-wear and highly pigmented formulas."
                       </p>
                   </div>
 
@@ -380,7 +471,7 @@ export default function BeautyLanding() {
       </div>
 
       <CategoryGrid />
-      <ShadeCollection />
+      <ShadeCollection onOpenProduct={handleOpenProductModal} />
       <ShopTheLookSection onOpenModal={handleOpenProductModal} />
       <SkinBanner onShopNow={handleShopNow} />
       

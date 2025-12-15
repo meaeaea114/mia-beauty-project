@@ -67,7 +67,7 @@ export default function CartPage() {
   }
 
   const handleProceed = () => {
-      const user = localStorage.getItem("mia-beauty-profile")
+      const user = localStorage.getItem("mia-profile")
       if (user) {
         // User is already logged in, go straight to checkout
         router.push("/checkout")

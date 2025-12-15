@@ -1,42 +1,53 @@
 "use client"
 
 import * as React from "react"
-import { useState, useEffect, useMemo } from "react"
-import { useCart } from "@/app/context/cart-context"
+import { useState, useEffect, useMemo, useCallback } from "react"
+import { 
+  CreditCard, Wallet, Truck, 
+  ChevronRight, Lock, 
+  ArrowRight, Loader2, MapPin, ArrowLeft 
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
-import { useRouter } from "next/navigation"
-import { ArrowLeft, MapPin, Truck } from "lucide-react" 
-import Link from "next/link"
+import { useCart } from "@/app/context/cart-context" 
 import { supabase } from "@/lib/supabase"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 
-// --- EXPANDED DATASET FOR PHILIPPINE CITIES ---
+// --- LOCATION DATA ---
 const ADDRESS_DATA = {
     regions: [
         { name: "National Capital Region (NCR)", code: "NCR" },
         { name: "CALABARZON (Region IV-A)", code: "IV-A" },
         { name: "Central Luzon (Region III)", code: "III" },
         { name: "Central Visayas (Region VII)", code: "VII" },
-        // ... (Keep existing regions)
+        { name: "Ilocos Region (Region I)", code: "I" },
+        { name: "Cagayan Valley (Region II)", code: "II" },
+        { name: "MIMAROPA (Region IV-B)", code: "IV-B" },
+        { name: "Bicol Region (Region V)", code: "V" },
+        { name: "Cordillera Administrative Region (CAR)", code: "CAR" },
     ],
     provinces: {
         "NCR": ["Metro Manila"],
         "IV-A": ["Batangas", "Cavite", "Laguna", "Quezon", "Rizal"],
-        // ... (Keep existing provinces)
     },
     cities: {
         "Metro Manila": ["Manila", "Quezon City", "Makati", "Taguig"],
         "Batangas": ["Batangas City", "Lipa City", "Tanauan City", "Sto. Tomas"],
-        // ... (Keep existing cities)
     }
 }
 
 export default function CheckoutPage() {
-  const { items, subtotal } = useCart()
+  const cartData = useCart() || {} 
+  const items = cartData.items || [] 
+  const subtotal = cartData.subtotal ?? 0  
+
   const { toast } = useToast()
   const router = useRouter()
+
   
   const [isLoading, setIsLoading] = useState(false)
+  const [fetchingData, setFetchingData] = useState(true)
   const [paymentMethod, setPaymentMethod] = useState("card") 
   const [mounted, setMounted] = useState(false)
   
@@ -63,71 +74,12 @@ export default function CheckoutPage() {
   }, [selectedRegion, subtotal])
 
   const shippingCost = getShippingCost()
-  const total = subtotal + (shippingCost || 0)
+  const total = subtotal + (shippingCost ?? 0) 
 
-  // --- INITIAL LOAD ---
-  useEffect(() => {
-    setMounted(true)
-
-    const initCheckout = async () => {
-        const { data: { session } } = await supabase.auth.getSession()
-        
-        if (session) {
-            const currentUser = session.user
-            setUser({ 
-                name: currentUser.user_metadata.first_name || "", 
-                email: currentUser.email!,
-                id: currentUser.id
-            })
-            setFormData(prev => ({ ...prev, email: currentUser.email! }))
-
-            // FETCH SAVED ADDRESSES
-            const { data: addresses } = await supabase
-                .from('addresses')
-                .select('*')
-                .eq('user_id', currentUser.id)
-                .order('is_default', { ascending: false })
-            
-            if (addresses && addresses.length > 0) {
-                setSavedAddresses(addresses)
-                const defaultAddr = addresses.find((a: any) => a.is_default) || addresses[0]
-                fillAddressForm(defaultAddr)
-            } 
-            else {
-                // Fallback to last order address
-                const { data: lastOrder } = await supabase
-                    .from('orders')
-                    .select('customer_details')
-                    .eq('customer_email', currentUser.email)
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .maybeSingle()
-
-                if (lastOrder?.customer_details) {
-                    fillAddressForm(lastOrder.customer_details)
-                }
-            }
-        } else {
-            // Guest Logic
-            const draft = localStorage.getItem("checkout_draft")
-            if (draft) {
-                try {
-                    const parsed = JSON.parse(draft)
-                    setFormData(parsed)
-                    if(parsed.region) setSelectedRegion(parsed.region)
-                    if(parsed.region && parsed.province) setSelectedProvince(parsed.province)
-                    if(parsed.region && parsed.province && parsed.city) setSelectedCity(parsed.city)
-                } catch(e) {}
-            }
-        }
-    }
-
-    initCheckout()
-  }, [])
-
-  const fillAddressForm = (data: any) => {
-      const firstName = data.first_name || data.firstName || ""
-      const lastName = data.last_name || data.lastName || ""
+  // --- RESTORED: AUTO-FILL LOGIC ---
+  const fillAddressForm = useCallback((data: any, profileDefaults?: any) => {
+      const firstName = data.first_name || data.firstName || profileDefaults?.firstName || ""
+      const lastName = data.last_name || data.lastName || profileDefaults?.lastName || ""
       const phone = data.phone || ""
       const address = data.address || ""
       const barangay = data.barangay || ""
@@ -137,22 +89,93 @@ export default function CheckoutPage() {
       const city = data.city || ""
 
       setFormData(prev => ({
-          ...prev, firstName, lastName, phone, address, barangay, postalCode
+          ...prev, 
+          firstName, lastName, phone, address, barangay, postalCode,
+          email: profileDefaults?.email || prev.email
       }))
 
       if (region) setSelectedRegion(region)
-      if (province) setTimeout(() => setSelectedProvince(province), 50)
-      if (city) setTimeout(() => setSelectedCity(city), 100)
+      if (province) setSelectedProvince(province)
+      if (city) setSelectedCity(city)
       
       toast({ title: "Address Applied", description: "Shipping details updated." })
-  }
+  }, [toast])
 
+  const initCheckout = useCallback(async () => {
+    try {
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (session?.user) {
+            const currentUser = session.user
+            const userName = currentUser.user_metadata.first_name || ""
+            setUser({ 
+                name: userName, 
+                email: currentUser.email!,
+                id: currentUser.id
+            })
+            
+            const initialFormData = {
+                email: currentUser.email || "",
+                firstName: userName,
+                lastName: currentUser.user_metadata.last_name || "",
+                address: "", barangay: "", postalCode: "", phone: "" 
+            }
+
+            const { data: addresses } = await supabase
+                .from('addresses')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('is_default', { ascending: false })
+                .limit(1)
+
+            if (addresses && addresses.length > 0) {
+                setSavedAddresses(addresses)
+                fillAddressForm(addresses[0], initialFormData)
+            } else {
+                const { data: lastOrder } = await supabase
+                    .from('orders')
+                    .select('customer_details')
+                    .eq('customer_email', currentUser.email)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle()
+                
+                if (lastOrder?.customer_details) {
+                     fillAddressForm(lastOrder.customer_details, initialFormData)
+                } else {
+                    setFormData(initialFormData)
+                }
+            }
+        } else {
+            // Guest Logic: Load draft
+            const draft = localStorage.getItem("checkout_draft")
+            if (draft) {
+                const parsed = JSON.parse(draft)
+                setFormData(parsed)
+                if(parsed.region) setSelectedRegion(parsed.region)
+                if(parsed.region && parsed.province) setSelectedProvince(parsed.province)
+                if(parsed.region && parsed.province && parsed.city) setSelectedCity(parsed.city)
+            }
+        }
+    } catch (error) {
+        console.error("Error fetching user data:", error)
+    } finally {
+        setFetchingData(false)
+    }
+  }, [fillAddressForm])
+
+  useEffect(() => {
+    setMounted(true)
+    initCheckout() 
+  }, [initCheckout])
+
+  // --- ADDRESS & INPUT HANDLERS ---
   const handleSelectSavedAddress = (e: React.ChangeEvent<HTMLSelectElement>) => {
       const addressId = e.target.value
       if (!addressId) return
 
       if (addressId === 'new') {
-          setFormData(prev => ({ ...prev, firstName: "", lastName: "", address: "", barangay: "", postalCode: "", phone: "" }))
+          setFormData(prev => ({ ...prev, firstName: user?.name.split(' ')[0] || "", lastName: user?.name.split(' ').slice(1).join(' ') || "", address: "", barangay: "", postalCode: "", phone: "" }))
           setSelectedRegion("")
           setSelectedProvince("")
           setSelectedCity("")
@@ -161,7 +184,7 @@ export default function CheckoutPage() {
 
       const selected = savedAddresses.find(a => a.id === addressId)
       if (selected) {
-          fillAddressForm(selected)
+          fillAddressForm(selected, { email: user?.email })
       }
   }
 
@@ -180,24 +203,45 @@ export default function CheckoutPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setFormData({...formData, [e.target.name]: e.target.value})
   }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value.replace(/\D/g, '') // Remove non-digits
+      if (value.length <= 11) {
+          setFormData({ ...formData, phone: value })
+      }
+  }
+
+  const handlePostalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value.replace(/\D/g, '') // Remove non-digits
+      if (value.length <= 4) {
+          setFormData({ ...formData, postalCode: value })
+      }
+  }
   
-  // --- CORRECTED CHECKOUT HANDLER ---
- const handleCheckout = (e: React.FormEvent) => {
+  // --- CHECKOUT HANDLER ---
+  const handleCheckout = (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (formData.phone.length < 11) {
+        toast({ title: "Invalid Phone", description: "Please enter a valid 11-digit mobile number.", variant: "destructive" })
+        return
+    }
+
     setIsLoading(true)
 
-    // 1. COD LOGIC
+    // 1. COD LOGIC (Review/Confirm Address)
     if (paymentMethod === 'cod') {
         const params = new URLSearchParams({
-            email: formData.email, // <--- ADD THIS LINE
-            firstName: formData.firstName, // <--- AND THIS (Useful for the order record)
-            lastName: formData.lastName,   // <--- AND THIS
+            email: formData.email,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
             address: formData.address,
             city: selectedCity,
             postal: formData.postalCode,
             mobile: formData.phone,
             region: selectedRegion,
-            province: selectedProvince
+            province: selectedProvince,
+            barangay: formData.barangay, // Ensure barangay is passed for confirmation page
         }).toString()
         
         setTimeout(() => {
@@ -207,13 +251,13 @@ export default function CheckoutPage() {
         return
     }
 
-    // 2. CARD/WALLET LOGIC (Redirect to Payment)
+    // 2. CARD/WALLET LOGIC (Continue to Payment Portal)
     const orderId = `ORD-${Math.floor(Math.random() * 90000) + 10000}`
     sessionStorage.setItem("current_checkout_session", JSON.stringify({
         id: orderId, 
         items, 
         total, 
-        shippingCost: shippingCost || 0, 
+        shippingCost: shippingCost ?? 0, 
         subtotal, 
         paymentMethod, 
         customer: { 
@@ -230,6 +274,7 @@ export default function CheckoutPage() {
     }, 500)
   }
 
+  // --- HELPERS ---
   // @ts-ignore
   const getProvinces = () => selectedRegion ? ADDRESS_DATA.provinces[selectedRegion] || [] : []
   // @ts-ignore
@@ -238,148 +283,311 @@ export default function CheckoutPage() {
   const cityList = getCities()
   const shouldShowCityDropdown = selectedProvince && cityList.length > 0
 
-  if (!mounted) return null
-  if (items.length === 0) return <div className="min-h-screen flex items-center justify-center">Empty Cart</div>
+  // --- UI COMPONENT: PAYMENT CARD ---
+  const PaymentCard = ({ id, label, icon: Icon, description }: any) => (
+      <div 
+        onClick={() => setPaymentMethod(id)}
+        className={`
+            relative p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 flex items-start gap-4 group
+            ${paymentMethod === id 
+                ? 'border-[#AB462F] bg-[#AB462F]/5 shadow-sm' 
+                : 'border-stone-200 dark:border-stone-700 bg-white dark:bg-black/20 hover:border-stone-300 dark:hover:border-stone-500'}
+        `}
+      >
+          <div className={`
+              w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5
+              ${paymentMethod === id ? 'border-[#AB462F]' : 'border-stone-300 dark:border-stone-500 group-hover:border-stone-400'}
+          `}>
+              {paymentMethod === id && <div className="w-2.5 h-2.5 rounded-full bg-[#AB462F]" />}
+          </div>
+          
+          <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                  <Icon className={`w-4 h-4 ${paymentMethod === id ? 'text-[#AB462F]' : 'text-stone-400'}`} />
+                  <span className={`font-bold text-sm ${paymentMethod === id ? 'text-[#AB462F]' : 'text-stone-700 dark:text-stone-200'}`}>{label}</span>
+              </div>
+              <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">{description}</p>
+          </div>
+      </div>
+  )
+
+  if (!mounted || fetchingData) return (
+      <div className="min-h-screen flex items-center justify-center bg-transparent">
+          <Loader2 className="w-8 h-8 text-[#AB462F] animate-spin" />
+      </div>
+  )
+
+  if (items.length === 0) return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-transparent space-y-4">
+        <p className="text-stone-500 font-medium">Your cart is currently empty.</p>
+        <Link href="/shop" className="text-[#AB462F] font-bold uppercase text-xs tracking-widest border-b border-[#AB462F]">Start Shopping</Link>
+    </div>
+  )
 
   return (
-    <div className="min-h-screen bg-transparent font-sans text-[#1a1a1a] dark:text-white flex flex-col lg:flex-row pt-20 pb-40">
-      
-      {/* LEFT COLUMN: FORM */}
-      <div className="flex-1 order-2 lg:order-1 px-6 lg:px-12 xl:px-20 lg:border-r border-stone-200 dark:border-stone-800 pt-8">
-         <div className="max-w-xl mx-auto lg:mr-0 lg:ml-auto">
-            
-            <div className="mb-8 hidden lg:block">
-                <div className="text-xs text-stone-500 mt-2 flex items-center">
-                    <Link href="/cart" className="hover:underline">Cart</Link> <span className="mx-2">/</span>
-                    <span className="font-bold text-foreground">Checkout</span> <span className="mx-2">/</span>
-                    <span className="text-stone-500">Payment</span>
+    <div className="min-h-screen w-full bg-transparent font-sans pt-28 pb-20 px-4 md:px-8 text-[#1a1a1a] dark:text-white">
+        
+        {/* HEADER */}
+        <div className="max-w-7xl mx-auto mb-12 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+                <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-2">
+                    Check<span className="font-serif italic font-normal text-[#AB462F] lowercase">out</span>
+                </h1>
+                <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-stone-400 uppercase">
+                    <Link href="/cart" className="text-[#AB462F] hover:underline">Cart</Link>
+                    <ChevronRight className="w-3 h-3" />
+                    <span className="text-stone-800 dark:text-white">Information</span>
+                    <ChevronRight className="w-3 h-3" />
+                    <span>Payment</span>
                 </div>
             </div>
+            
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-stone-500 bg-white/70 dark:bg-black/50 px-4 py-2 rounded-full shadow-sm border border-stone-100 dark:border-white/10">
+                <Lock className="w-3 h-3 text-green-600" />
+                <span>Secure SSL Encrypted Transaction</span>
+            </div>
+        </div>
 
-            <form onSubmit={handleCheckout} noValidate className="space-y-10 animate-in fade-in">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
+            
+            {/* LEFT COLUMN: FORMS */}
+            <div className="lg:col-span-7 space-y-12">
                 
-                {/* SHIPPING ADDRESS */}
-                <section className="space-y-4">
-                    <div className="flex justify-between items-center">
-                        <h2 className="text-lg font-bold text-foreground">Shipping Address</h2>
-                    </div>
-
-                    {/* SAVED ADDRESS SELECTOR */}
+                <form id="checkout-form" onSubmit={handleCheckout} className="space-y-10">
+                    
+                    {/* SAVED ADDRESS ALERT */}
                     {savedAddresses.length > 0 && (
-                        <div className="mb-6 p-4 bg-[#AB462F]/5 border border-[#AB462F]/20 rounded-lg">
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-[#AB462F] mb-2 block flex items-center gap-2">
-                                <MapPin className="w-3 h-3" /> Use a saved address
-                            </label>
+                        <div className="p-4 bg-white dark:bg-black/40 border border-[#AB462F]/20 rounded-xl shadow-sm flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-[#AB462F]/10 flex items-center justify-center text-[#AB462F]"><MapPin className="w-4 h-4" /></div>
+                                <div>
+                                    <p className="text-xs font-bold uppercase tracking-wide text-stone-700 dark:text-stone-200">Use Saved Address</p>
+                                    <p className="text-[10px] text-stone-500">Quickly fill your details.</p>
+                                </div>
+                            </div>
                             <select 
-                                className="w-full bg-white dark:bg-black/20 border border-stone-300 dark:border-stone-700 rounded-md px-3 py-2 text-sm focus:border-[#AB462F] outline-none cursor-pointer"
+                                className="bg-transparent text-xs font-bold text-[#AB462F] outline-none cursor-pointer text-right"
                                 onChange={handleSelectSavedAddress}
                                 defaultValue=""
                             >
-                                <option value="" disabled>Select an address...</option>
+                                <option value="" disabled>Select...</option>
                                 {savedAddresses.map((addr) => (
-                                    <option key={addr.id} value={addr.id}>
-                                        {addr.first_name} {addr.last_name} — {addr.city}, {addr.province}
-                                    </option>
+                                    <option key={addr.id} value={addr.id}>{addr.first_name} ({addr.city})</option>
                                 ))}
-                                <option value="new" className="font-bold text-[#AB462F]">+ Enter New Address</option>
+                                <option value="new">+ New Address</option>
                             </select>
                         </div>
                     )}
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                        <input name="firstName" required placeholder="First name" className="w-full border border-stone-300 dark:border-stone-700 rounded-md px-4 py-3 text-sm bg-blue-50/30 dark:bg-black/20 dark:text-white" value={formData.firstName} onChange={handleInputChange} />
-                        <input name="lastName" required placeholder="Last name" className="w-full border border-stone-300 dark:border-stone-700 rounded-md px-4 py-3 text-sm bg-blue-50/30 dark:bg-black/20 dark:text-white" value={formData.lastName} onChange={handleInputChange} />
-                    </div>
 
-                    <select required className="w-full border border-stone-300 dark:border-stone-700 rounded-md px-4 py-3 text-sm bg-white dark:bg-black/20 dark:text-white" value={selectedRegion} onChange={(e) => { setSelectedRegion(e.target.value); setSelectedProvince(""); setSelectedCity("") }}>
-                        <option value="" disabled>Select Region</option>
-                        {ADDRESS_DATA.regions.map(r => <option key={r.code} value={r.code}>{r.name}</option>)}
-                    </select>
+                    {/* SECTION 1: CONTACT & SHIPPING DETAILS */}
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-3 mb-4 border-b border-stone-200 dark:border-stone-700 pb-2">
+                            <h2 className="text-sm font-bold uppercase tracking-widest text-stone-400">Contact & Shipping Details</h2>
+                        </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <select required disabled={!selectedRegion} className="w-full border border-stone-300 dark:border-stone-700 rounded-md px-4 py-3 text-sm bg-white dark:bg-black/20 dark:text-white disabled:bg-stone-100 disabled:text-stone-400" value={selectedProvince} onChange={(e) => { setSelectedProvince(e.target.value); setSelectedCity("") }}>
-                            <option value="" disabled>Select Province</option>
-                            {getProvinces().map((p: string) => <option key={p} value={p}>{p}</option>)}
-                        </select>
+                        <div className="grid grid-cols-2 gap-5">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 pl-1">First Name</label>
+                                <input required name="firstName" type="text" placeholder="Jane" 
+                                    className="w-full bg-white dark:bg-black/20 border border-stone-200 dark:border-stone-700 text-[#1a1a1a] dark:text-white focus:border-[#AB462F] rounded-xl px-4 py-3.5 text-sm outline-none transition-all placeholder:text-stone-400"
+                                    value={formData.firstName} onChange={handleInputChange}
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 pl-1">Last Name</label>
+                                <input required name="lastName" type="text" placeholder="Doe" 
+                                    className="w-full bg-white dark:bg-black/20 border border-stone-200 dark:border-stone-700 text-[#1a1a1a] dark:text-white focus:border-[#AB462F] rounded-xl px-4 py-3.5 text-sm outline-none transition-all placeholder:text-stone-400"
+                                    value={formData.lastName} onChange={handleInputChange}
+                                />
+                            </div>
+                        </div>
 
-                        {shouldShowCityDropdown ? (
-                            <select required disabled={!selectedProvince} className="w-full border border-stone-300 dark:border-stone-700 rounded-md px-4 py-3 text-sm bg-white dark:bg-black/20 dark:text-white disabled:bg-stone-100 disabled:text-stone-400" value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)}>
-                                <option value="" disabled>Select City</option>
-                                {cityList.map((c: string) => <option key={c} value={c}>{c}</option>)}
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 pl-1">Email Address</label>
+                            <input required name="email" type="email" placeholder="jane@example.com" 
+                                className="w-full bg-white dark:bg-black/20 border border-stone-200 dark:border-stone-700 text-[#1a1a1a] dark:text-white focus:border-[#AB462F] rounded-xl px-4 py-3.5 text-sm outline-none transition-all placeholder:text-stone-400"
+                                value={formData.email} onChange={handleInputChange}
+                            />
+                        </div>
+
+                        {/* REGION / PROVINCE / CITY */}
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 pl-1">Region</label>
+                            <select required className="w-full bg-white dark:bg-black/20 border border-stone-200 dark:border-stone-700 text-[#1a1a1a] dark:text-white focus:border-[#AB462F] rounded-xl px-4 py-3.5 text-sm outline-none transition-all cursor-pointer appearance-none"
+                                value={selectedRegion} onChange={(e) => { setSelectedRegion(e.target.value); setSelectedProvince(""); setSelectedCity("") }}
+                            >
+                                <option value="" disabled>Select Region</option>
+                                {ADDRESS_DATA.regions.map(r => <option key={r.code} value={r.code}>{r.name}</option>)}
                             </select>
-                        ) : (
-                            <input placeholder="City / Municipality" disabled={!selectedProvince} className="w-full border border-stone-300 dark:border-stone-700 rounded-md px-4 py-3 text-sm bg-white dark:bg-black/20 dark:text-white disabled:bg-stone-100" value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)} />
-                        )}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-5">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 pl-1">Province</label>
+                                <select required disabled={!selectedRegion} className="w-full bg-white dark:bg-black/20 border border-stone-200 dark:border-stone-700 text-[#1a1a1a] dark:text-white focus:border-[#AB462F] rounded-xl px-4 py-3.5 text-sm outline-none disabled:bg-stone-50 disabled:text-stone-400"
+                                    value={selectedProvince} onChange={(e) => { setSelectedProvince(e.target.value); setSelectedCity("") }}
+                                >
+                                    <option value="" disabled>Select Province</option>
+                                    {getProvinces().map((p: string) => <option key={p} value={p}>{p}</option>)}
+                                </select>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 pl-1">City</label>
+                                {shouldShowCityDropdown ? (
+                                    <select required disabled={!selectedProvince} className="w-full bg-white dark:bg-black/20 border border-stone-200 dark:border-stone-700 text-[#1a1a1a] dark:text-white focus:border-[#AB462F] rounded-xl px-4 py-3.5 text-sm outline-none disabled:bg-stone-50 disabled:text-stone-400"
+                                        value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)}
+                                    >
+                                        <option value="" disabled>Select City</option>
+                                        {cityList.map((c: string) => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                ) : (
+                                    <input required placeholder="City" disabled={!selectedProvince} className="w-full bg-white dark:bg-black/20 border border-stone-200 dark:border-stone-700 text-[#1a1a1a] dark:text-white focus:border-[#AB462F] rounded-xl px-4 py-3.5 text-sm outline-none disabled:bg-stone-50" 
+                                        value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)} 
+                                    />
+                                )}
+                            </div>
+                        </div>
+
+                        {/* ADDRESS LINES */}
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 pl-1">Barangay</label>
+                            <input required name="barangay" type="text" className="w-full bg-white dark:bg-black/20 border border-stone-200 dark:border-stone-700 text-[#1a1a1a] dark:text-white focus:border-[#AB462F] rounded-xl px-4 py-3.5 text-sm outline-none" 
+                                value={formData.barangay} onChange={handleInputChange}
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 pl-1">Street Address</label>
+                            <input required name="address" type="text" placeholder="Street Address, House No." 
+                                className="w-full bg-white dark:bg-black/20 border border-stone-200 dark:border-stone-700 text-[#1a1a1a] dark:text-white focus:border-[#AB462F] rounded-xl px-4 py-3.5 text-sm outline-none transition-all placeholder:text-stone-400"
+                                value={formData.address} onChange={handleInputChange}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-5">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 pl-1">Postal Code</label>
+                                <input required name="postalCode" type="text" placeholder="xxxx" 
+                                    className="w-full bg-white dark:bg-black/20 border border-stone-200 dark:border-stone-700 text-[#1a1a1a] dark:text-white focus:border-[#AB462F] rounded-xl px-4 py-3.5 text-sm outline-none transition-all font-mono placeholder:text-stone-400"
+                                    value={formData.postalCode} onChange={handlePostalChange} maxLength={4}
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 pl-1">Mobile Number</label>
+                                <input required name="phone" type="tel" placeholder="09xxxxxxxxx" 
+                                    className="w-full bg-white dark:bg-black/20 border border-stone-200 dark:border-stone-700 text-[#1a1a1a] dark:text-white focus:border-[#AB462F] rounded-xl px-4 py-3.5 text-sm outline-none transition-all font-mono placeholder:text-stone-400"
+                                    value={formData.phone} onChange={handlePhoneChange} maxLength={11}
+                                />
+                            </div>
+                        </div>
                     </div>
 
-                    <input name="barangay" required placeholder="Barangay" className="w-full border border-stone-300 dark:border-stone-700 rounded-md px-4 py-3 text-sm bg-white dark:bg-black/20 dark:text-white" value={formData.barangay} onChange={handleInputChange} />
-                    <input name="address" required placeholder="Street Address, House No." className="w-full border border-stone-300 dark:border-stone-700 rounded-md px-4 py-3 text-sm bg-white dark:bg-black/20 dark:text-white" value={formData.address} onChange={handleInputChange} />
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                        <input name="postalCode" required placeholder="Postal Code" className="w-full border border-stone-300 dark:border-stone-700 rounded-md px-4 py-3 text-sm bg-white dark:bg-black/20 dark:text-white" value={formData.postalCode} onChange={handleInputChange} />
-                        <input name="phone" required placeholder="Mobile Number" className="w-full border border-stone-300 dark:border-stone-700 rounded-md px-4 py-3 text-sm bg-blue-50/30 dark:bg-black/20 dark:text-white" value={formData.phone} onChange={handleInputChange} />
-                    </div>
-                </section>
+                    <div className="w-full h-px bg-stone-200 dark:bg-stone-700" />
 
-                {/* PAYMENT SECTION */}
-                <section className="space-y-4">
-                    <h2 className="text-lg font-bold text-foreground">Payment</h2>
-                    <div className="border border-stone-300 dark:border-stone-700 rounded-md overflow-hidden bg-white dark:bg-black/10">
-                        <label className={`flex items-center justify-between p-4 cursor-pointer border-b border-stone-300 dark:border-stone-700 ${paymentMethod === 'card' ? 'bg-[#fcf8f2] dark:bg-black/40 border-[#AB462F]/30 dark:border-[#AB462F]' : 'bg-white dark:bg-black/20'}`}>
-                            <div className="flex items-center gap-3"><input type="radio" name="payment" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} className="accent-[#AB462F]" /><span className="text-sm font-medium text-foreground">Credit/Debit Card</span></div>
-                        </label>
-                        <label className={`flex items-center justify-between p-4 cursor-pointer border-b border-stone-300 dark:border-stone-700 ${paymentMethod === 'wallet' ? 'bg-[#fcf8f2] dark:bg-black/40 border-[#AB462F]/30 dark:border-[#AB462F]' : 'bg-white dark:bg-black/20'}`}>
-                            <div className="flex items-center gap-3"><input type="radio" name="payment" checked={paymentMethod === 'wallet'} onChange={() => setPaymentMethod('wallet')} className="accent-[#AB462F]" /><span className="text-sm font-medium text-foreground">E-Wallets</span></div>
-                        </label>
-                        <label className={`flex items-center justify-between p-4 cursor-pointer ${paymentMethod === 'cod' ? 'bg-[#fcf8f2] dark:bg-black/40 border-[#AB462F]/30 dark:border-[#AB462F]' : 'bg-white dark:bg-black/20'}`}>
-                            <div className="flex items-center gap-3"><input type="radio" name="payment" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="accent-[#AB462F]" /><span className="text-sm font-medium text-foreground">Cash on Delivery (COD)</span></div>
-                        </label>
-                    </div>
-                </section>
+                    {/* SECTION 2: PAYMENT */}
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-3 mb-4 border-b border-stone-200 dark:border-stone-700 pb-2">
+                            <h2 className="text-sm font-bold uppercase tracking-widest text-stone-400">Payment Method</h2>
+                        </div>
 
-                <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-6 pt-6">
-                    <Link href="/cart" className="text-sm text-[#AB462F] flex items-center gap-2 hover:opacity-80 font-bold"><ArrowLeft className="w-4 h-4" /> Return to cart</Link>
-                    <Button type="submit" disabled={isLoading} className="w-full md:w-auto px-12 h-14 bg-[#1a1a1a] hover:bg-[#AB462F] text-white font-bold text-sm uppercase tracking-widest rounded-full shadow-lg transition-all">
-                        {isLoading ? "Processing..." : (paymentMethod === 'cod' ? "Review Order Details" : "Continue to Payment")}
-                    </Button>
+                        <div className="space-y-3">
+                            <PaymentCard 
+                                id="card" label="Credit / Debit Card" icon={CreditCard}
+                                description="Securely pay with Visa, Mastercard, or AMEX. Powered by PayMongo."
+                            />
+                            <PaymentCard 
+                                id="wallet" label="E-Wallet" icon={Wallet}
+                                description="Pay via GCash, Maya, ShopeePay, or PayPal."
+                            />
+                            <PaymentCard 
+                                id="cod" label="Cash on Delivery" icon={Truck}
+                                description="Pay in cash upon delivery. Please prepare exact amount."
+                            />
+                        </div>
+                    </div>
+
+                    {/* Return Link (Kept for navigation) */}
+                    <div className="flex justify-start">
+                        <Link href="/cart" className="text-sm text-[#AB462F] flex items-center gap-2 hover:opacity-80 font-bold">
+                            <ArrowLeft className="w-4 h-4" /> Return to cart
+                        </Link>
+                    </div>
+
+                </form>
+            </div>
+
+            {/* --- RIGHT COLUMN: ORDER SUMMARY (STICKY) --- */}
+            <div className="lg:col-span-5">
+                <div className="sticky top-32">
+                    <div className="bg-white dark:bg-black/40 p-8 rounded-[32px] shadow-2xl shadow-stone-200/50 dark:shadow-black/50 border border-stone-100 dark:border-white/10 relative overflow-hidden">
+                        
+                        {/* Decorative Gradient */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[#AB462F]/10 to-transparent rounded-bl-full pointer-events-none" />
+
+                        <h3 className="font-serif font-bold text-2xl mb-6">Order Summary</h3>
+
+                        {/* Items List */}
+                        <div className="space-y-4 mb-8 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                            {items.map((item: any) => (
+                                <div key={`${item.id}-${item.variant}`} className="flex gap-4 items-center group">
+                                    <div className="w-16 h-16 bg-stone-50 dark:bg-black/50 rounded-xl border border-stone-100 dark:border-white/10 overflow-hidden flex-shrink-0">
+                                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="font-bold text-sm uppercase tracking-wide text-[#1a1a1a] dark:text-white">{item.name}</h4>
+                                        <p className="text-[10px] text-stone-500 uppercase tracking-widest">{item.variant || 'Standard'}</p>
+                                        <p className="text-xs text-stone-400 mt-1">Qty: {item.quantity}</p>
+                                    </div>
+                                    <p className="font-bold text-sm text-[#1a1a1a] dark:text-white">₱{((item.price ?? 0) * (item.quantity ?? 1)).toLocaleString()}</p>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Calculations */}
+                        <div className="space-y-3 pt-6 border-t border-dashed border-stone-200 dark:border-stone-700">
+                            <div className="flex justify-between text-sm text-stone-500">
+                                <span>Subtotal</span>
+                                <span>₱{subtotal.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between text-sm text-stone-500">
+                                <span>Shipping</span>
+                                <span className="font-medium text-[#AB462F]">
+                                    {shippingCost === null ? "Calculated after address" : (shippingCost === 0 ? "Free" : `₱${shippingCost.toLocaleString()}`)}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-baseline pt-4 border-t border-stone-100 dark:border-stone-700">
+                                <span className="font-bold text-lg text-[#1a1a1a] dark:text-white">Total</span>
+                                <span className="font-serif italic text-3xl text-[#AB462F]">₱{total.toLocaleString()}</span>
+                            </div>
+                        </div>
+
+                        {/* SUBMIT BUTTON (The ONLY functional button now) */}
+                        <Button 
+                            type="submit" 
+                            form="checkout-form" // Links this button to the form on the left
+                            disabled={isLoading}
+                            className="w-full h-14 mt-8 rounded-full bg-[#1a1a1a] hover:bg-[#AB462F] text-white font-bold tracking-[0.2em] uppercase text-xs shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group"
+                        >
+                            {isLoading ? "Processing..." : (
+                                <span className="flex items-center gap-2">
+                                    {/* DYNAMIC TEXT LOGIC */}
+                                    {paymentMethod === 'cod' ? 'CONFIRM ADDRESS' : 'CONTINUE TO PAYMENT'}
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                </span>
+                            )}
+                        </Button>
+
+                        <div className="mt-6 text-center">
+                            <Link href="/shop" className="text-[10px] font-bold uppercase tracking-widest text-stone-400 hover:text-[#AB462F] border-b border-transparent hover:border-[#AB462F] transition-all">
+                                Forgot something? Keep Shopping
+                            </Link>
+                        </div>
+
+                    </div>
                 </div>
-            </form>
-         </div>
-      </div>
-      
-      {/* RIGHT COLUMN: SUMMARY */}
-      <div className="hidden lg:block flex-1 order-1 lg:order-2 glass border-l border-stone-200 dark:border-white/10 px-6 lg:px-12 xl:px-20 py-12">
-          <div className="max-w-md mx-auto sticky top-32">
-              <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                  {items.map((item) => (
-                      <div key={`${item.id}-${item.variant}`} className="flex gap-5 items-start">
-                          <div className="h-20 w-20 bg-white dark:bg-black/20 border border-stone-200 dark:border-stone-700 rounded-lg overflow-hidden relative flex-shrink-0 shadow-sm">
-                              <img src={item.image} alt={item.name} className="h-full w-full object-contain p-2" />
-                          </div>
-                          <div className="flex-1 pt-1">
-                              <h3 className="font-bold text-base uppercase tracking-tight text-foreground leading-none mb-1">{item.name}</h3>
-                              <p className="text-xs text-stone-500 font-medium">{item.variant}</p>
-                              <p className="text-xs text-stone-500 mt-1">Qty: {item.quantity}</p> 
-                          </div>
-                          <div className="text-right pt-1"><p className="font-bold text-base text-foreground">₱{(item.price * item.quantity).toLocaleString()}</p></div>
-                      </div>
-                  ))}
-              </div>
-              <div className="mt-10 pt-8 border-t border-stone-300 dark:border-stone-700">
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center text-sm text-stone-600 dark:text-stone-300"><span>Subtotal</span><span className="font-medium text-foreground">₱{subtotal.toLocaleString()}</span></div>
-                    <div className="flex justify-between items-center text-sm text-stone-600 dark:text-stone-300">
-                        <span className="flex items-center gap-2"><Truck className="w-4 h-4 text-stone-400" /> Shipping</span>
-                        <span className="font-medium text-[#AB462F]">{shippingCost === null ? "Calculated after address" : (shippingCost === 0 ? "Free" : `₱${shippingCost}`)}</span>
-                    </div>
-                  </div>
-                  <div className="border-t border-stone-300 dark:border-stone-700 mt-6 pt-6 flex justify-between items-baseline">
-                      <span className="text-lg font-bold text-foreground">Total</span>
-                      <div className="text-right flex items-baseline gap-2"><span className="text-xs text-stone-500 font-semibold tracking-wider">PHP</span><span className="font-black text-3xl text-[#AB462F] tracking-tight">₱{total.toLocaleString()}</span></div>
-                  </div>
-              </div>
-          </div>
-      </div>
+            </div>
+
+        </div>
     </div>
   )
 }

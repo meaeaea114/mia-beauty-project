@@ -13,7 +13,7 @@ export function Footer() {
           {/* Brand Description */}
           <div className="md:col-span-4 space-y-6">
             <Link href="/" className="inline-block">
-              <h2 className="text-2xl font-black uppercase tracking-tighter text-[#AB462F]">MIA Beauty</h2>
+              <h2 className="text-2xl font-black uppercase tracking-tighter text-[#AB462F]">MIA</h2>
             </Link>
             <p className="text-sm text-stone-500 dark:text-stone-400 leading-relaxed max-w-xs">
               Beauty for real life. Consciously crafted, cruelty-free essentials designed to enhance your natural radiance.
@@ -78,7 +78,7 @@ export function Footer() {
           
           {/* Copyright */}
           <p className="text-[10px] text-stone-400 uppercase tracking-widest">
-            © {new Date().getFullYear()} MIA Beauty Inc. All rights reserved.
+            © {new Date().getFullYear()} MIA. All rights reserved.
           </p>
 
         </div>

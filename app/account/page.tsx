@@ -9,7 +9,9 @@ import { supabase } from "@/lib/supabase"
 // FIREBASE IMPORTS
 import { auth } from "@/lib/firebase" 
 import { onAuthStateChanged, signOut } from "firebase/auth"
-import { LogOut, Package, MapPin, User, ChevronRight, Loader2, X, CheckCircle2, Clock, Truck, Check, Plus, Trash2 } from "lucide-react"
+// FIX: Added 'Lock' to the imports below
+import { LogOut, Package, MapPin, User, ChevronRight, Loader2, X, CheckCircle2, Clock, Truck, Check, Plus, Trash2, Lock } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 
 // --- LOCATION DATA ---
 const ADDRESS_DATA = {
@@ -43,6 +45,7 @@ interface OrderItem { id: string; name: string; variant: string; price: number; 
 interface Order { 
     id: string; created_at: string; total_amount: number; status: string; items: OrderItem[]; 
     customer_details: any; 
+    payment_method?: string;
 }
 
 // --- ORDER TRACKER COMPONENT ---
@@ -129,7 +132,7 @@ export default function AccountDashboard() {
             const { data: orderData } = await supabase.from('orders')
                 .select('*').eq('customer_email', email).order('created_at', { ascending: false })
             
-            // Fetch Addresses (Try using UID, if fails, try fallback logic handled by empty array)
+            // Fetch Addresses
             const { data: addressData } = await supabase.from('addresses')
                 .select('*').eq('user_id', uid).order('created_at', { ascending: false })
 
@@ -150,7 +153,6 @@ export default function AccountDashboard() {
         const { data: { session } } = await supabase.auth.getSession()
         
         if (session?.user) {
-            // Found Supabase User -> Load and Exit
             loadUserData(
                 session.user.email!, 
                 session.user.id, 
@@ -163,7 +165,6 @@ export default function AccountDashboard() {
         // Step 2: Check Firebase (Google Login) - Only if Supabase failed
         firebaseUnsub = onAuthStateChanged(auth, (firebaseUser) => {
             if (firebaseUser) {
-                // Found Firebase User -> Load
                 const splitName = firebaseUser.displayName ? firebaseUser.displayName.split(" ") : ["User", ""]
                 loadUserData(
                     firebaseUser.email!, 
@@ -172,7 +173,6 @@ export default function AccountDashboard() {
                     splitName.slice(1).join(" ")
                 )
             } else {
-                // Step 3: No User Found on either -> Redirect
                 if (mounted) {
                     router.replace("/account/login")
                 }
@@ -189,9 +189,9 @@ export default function AccountDashboard() {
   }, [router])
 
   const handleLogout = async () => {
-      await supabase.auth.signOut() 
-      await signOut(auth)           
-      localStorage.removeItem("mia-beauty-profile")
+    await supabase.auth.signOut() 
+    await signOut(auth)           
+    localStorage.removeItem("mia-profile")
       router.push("/account/login")
   }
 
@@ -199,7 +199,6 @@ export default function AccountDashboard() {
   const handleSaveChanges = async () => {
       setIsUpdating(true)
       try {
-          // Try updating Supabase user
           const { error } = await supabase.auth.updateUser({
               data: { first_name: profileForm.firstName, last_name: profileForm.lastName }
           })
@@ -263,26 +262,30 @@ export default function AccountDashboard() {
 
   // --- VIEWS ---
   
-  // 1. ORDERS VIEW (Restored Design)
+  // 1. ORDERS VIEW
   const OrdersView = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <h2 className="text-xl font-normal uppercase tracking-widest mb-6 text-[#AB462F] dark:text-white">Order History</h2>
+    <motion.div initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} className="space-y-6">
+        <div className="flex justify-between items-center mb-2">
+            <h2 className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Recent Orders</h2>
+        </div>
+        
         {loadingOrders ? (
-            <div className="flex items-center justify-center py-20 text-stone-400"><Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading orders...</div>
+            <div className="flex items-center justify-center py-20 text-stone-400"><Loader2 className="w-6 h-6 animate-spin mr-2" /> Loading...</div>
         ) : orders.length === 0 ? (
-            <div className="border border-dashed border-stone-300 dark:border-stone-700 rounded-lg p-12 text-center">
-                <p className="text-stone-500 mb-4">You haven't placed any orders yet.</p>
-                <Button onClick={() => router.push("/shop")} variant="outline" className="uppercase text-xs tracking-widest">Start Shopping</Button>
+            <div className="bg-white/50 dark:bg-white/5 border border-dashed border-stone-300 dark:border-stone-700 rounded-2xl p-12 text-center">
+                <Package className="w-10 h-10 text-stone-300 mx-auto mb-4" />
+                <p className="text-stone-500 mb-6 text-sm">You haven't placed any orders yet.</p>
+                <Button onClick={() => router.push("/shop")} className="bg-[#1a1a1a] hover:bg-[#AB462F] text-white rounded-full uppercase text-[10px] tracking-widest h-10 px-6">Start Shopping</Button>
             </div>
         ) : (
             <div className="space-y-4">
                 {orders.map((order) => (
-                    <div key={order.id} className="group bg-white/50 dark:bg-white/5 border border-stone-200 dark:border-stone-800 rounded-lg p-6 hover:border-[#AB462F]/50 transition-all">
-                        <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-4">
-                            <div>
-                                <div className="flex items-center gap-3 mb-1">
-                                    <span className="font-bold text-sm tracking-wide">#{order.id.slice(0, 12)}...</span>
-                                    <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider border ${
+                    <div key={order.id} className="group bg-white/70 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl p-6 hover:shadow-lg hover:border-[#AB462F]/30 transition-all cursor-pointer" onClick={() => setSelectedOrder(order)}>
+                        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-3">
+                                    <span className="font-mono font-bold text-sm text-[#1a1a1a] dark:text-white">#{order.id.slice(0, 8)}...</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[9px] uppercase font-bold tracking-widest border ${
                                         (order.status === 'Completed' || order.status === 'Paid') ? 'bg-green-100 text-green-700 border-green-200' :
                                         order.status === 'Processing' ? 'bg-blue-100 text-blue-700 border-blue-200' :
                                         'bg-stone-100 text-stone-600 border-stone-200'
@@ -290,92 +293,118 @@ export default function AccountDashboard() {
                                         {order.status || 'Pending'}
                                     </span>
                                 </div>
-                                <p className="text-xs text-stone-500">{new Date(order.created_at).toLocaleDateString()}</p>
+                                <p className="text-xs text-stone-500">{new Date(order.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                             </div>
-                            <div className="text-right"><p className="text-lg font-serif font-bold text-[#AB462F]">₱{order.total_amount?.toLocaleString()}</p></div>
-                        </div>
-                        <div className="flex justify-between items-center border-t border-stone-100 dark:border-white/5 pt-4">
-                             <div className="flex -space-x-2">
-                                {Array.isArray(order.items) && order.items.slice(0, 3).map((item, idx) => (
-                                    <div key={idx} className="w-8 h-8 rounded-full border border-white dark:border-stone-900 bg-stone-100 overflow-hidden"><img src={item.image} alt={item.name} className="w-full h-full object-cover" /></div>
-                                ))}
-                             </div>
-                             <button onClick={() => setSelectedOrder(order)} className="text-[10px] font-bold uppercase tracking-widest text-stone-900 dark:text-white hover:text-[#AB462F] flex items-center gap-1">View Details <ChevronRight className="w-3 h-3" /></button>
+                            
+                            <div className="flex items-center justify-between md:justify-end gap-6 w-full md:w-auto">
+                                <div className="flex -space-x-3">
+                                    {Array.isArray(order.items) && order.items.slice(0, 3).map((item, idx) => (
+                                        <div key={idx} className="w-10 h-10 rounded-full border-2 border-white dark:border-[#1a1a1a] bg-stone-100 overflow-hidden shadow-sm">
+                                            <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                        </div>
+                                    ))}
+                                    {order.items.length > 3 && (
+                                        <div className="w-10 h-10 rounded-full border-2 border-white dark:border-[#1a1a1a] bg-stone-100 flex items-center justify-center text-[9px] font-bold text-stone-500">
+                                            +{order.items.length - 3}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="text-right min-w-[80px]">
+                                    <p className="text-sm font-bold text-[#1a1a1a] dark:text-white">₱{order.total_amount?.toLocaleString()}</p>
+                                    <span className="text-[10px] text-[#AB462F] font-bold uppercase tracking-widest group-hover:underline flex items-center justify-end gap-1">Details <ChevronRight className="w-3 h-3" /></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 ))}
             </div>
         )}
-    </div>
+    </motion.div>
   )
 
   // 2. ADDRESSES VIEW
   const AddressesView = () => (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="flex justify-between items-end mb-6">
-            <h2 className="text-xl font-normal uppercase tracking-widest text-[#AB462F] dark:text-white">Saved Addresses</h2>
-            <Button onClick={() => setShowAddressModal(true)} size="sm" className="bg-[#1a1a1a] text-white hover:bg-[#AB462F] uppercase text-[10px] tracking-widest font-bold h-9"><Plus className="w-3 h-3 mr-2" /> Add New</Button>
+    <motion.div initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} className="space-y-6">
+        <div className="flex justify-between items-center mb-2">
+            <h2 className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Saved Locations</h2>
+            <Button onClick={() => setShowAddressModal(true)} size="sm" className="bg-[#AB462F] hover:bg-[#8f3a26] text-white rounded-full uppercase text-[9px] tracking-widest font-bold h-8"><Plus className="w-3 h-3 mr-1" /> Add New</Button>
         </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {addresses.map((addr) => (
-                <div key={addr.id} className="border border-stone-200 dark:border-stone-800 p-6 rounded-lg relative group bg-white/50 dark:bg-white/5 hover:border-[#AB462F] transition-colors">
-                    {addr.is_default && <span className="absolute top-4 right-4 text-[9px] font-bold uppercase tracking-widest bg-[#AB462F] text-white px-2 py-1 rounded">Default</span>}
-                    <h3 className="font-bold text-sm mb-2 text-foreground">{addr.first_name} {addr.last_name}</h3>
-                    <div className="text-sm text-stone-600 dark:text-stone-400 space-y-0.5 leading-relaxed">
-                        <p>{addr.address}</p><p>{addr.city}, {addr.province}</p><p className="mt-2 text-xs">{addr.phone}</p>
+                <div key={addr.id} className="bg-white/70 dark:bg-white/5 border border-stone-200 dark:border-white/10 p-6 rounded-2xl relative group hover:shadow-md transition-all">
+                    {addr.is_default && <span className="absolute top-4 right-4 text-[9px] font-bold uppercase tracking-widest bg-stone-100 dark:bg-white/10 text-stone-500 px-2 py-1 rounded-full">Default</span>}
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="w-8 h-8 rounded-full bg-[#AB462F]/10 flex items-center justify-center text-[#AB462F]"><MapPin className="w-4 h-4" /></div>
+                        <h3 className="font-bold text-sm text-[#1a1a1a] dark:text-white">{addr.first_name} {addr.last_name}</h3>
                     </div>
-                    <div className="mt-6 pt-4 border-t border-stone-100 dark:border-white/5 flex gap-4 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                         <button onClick={() => handleDeleteAddress(addr.id)} className="text-xs font-bold text-stone-400 hover:text-red-600 flex items-center gap-1"><Trash2 className="w-3 h-3" /> Delete</button>
+                    <div className="text-xs text-stone-600 dark:text-stone-400 space-y-1 pl-11 leading-relaxed">
+                        <p>{addr.address}, {addr.barangay}</p>
+                        <p>{addr.city}, {addr.province}</p>
+                        <p className="font-mono text-stone-400">{addr.postal_code}</p>
+                        <p className="pt-2 font-bold text-[#1a1a1a] dark:text-white">{addr.phone}</p>
                     </div>
+                    <button onClick={() => handleDeleteAddress(addr.id)} className="absolute bottom-6 right-6 text-stone-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                        <Trash2 className="w-4 h-4" />
+                    </button>
                 </div>
             ))}
-            {addresses.length === 0 && <div className="col-span-full border border-dashed border-stone-300 dark:border-stone-700 rounded-lg p-8 text-center text-stone-500"><p className="text-sm">No addresses saved yet.</p></div>}
+            {addresses.length === 0 && (
+                <div className="col-span-full border border-dashed border-stone-300 dark:border-stone-700 rounded-2xl p-8 text-center text-stone-500 text-sm">
+                    No addresses saved yet.
+                </div>
+            )}
         </div>
-    </div>
+    </motion.div>
   )
 
-  // 3. PROFILE VIEW (Restored Design: Sleek Inputs)
+  // 3. PROFILE VIEW
   const ProfileView = () => (
-    <div className="max-w-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <h2 className="text-2xl font-normal uppercase tracking-widest mb-8 text-[#AB462F] dark:text-white">Account Details</h2>
-        <div className="space-y-8">
-            <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-stone-500">Email Address</label>
-                <div className="w-full bg-white/5 border border-white/5 rounded-md px-4 py-4 text-sm text-stone-400 cursor-not-allowed">
+    <motion.div initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} className="max-w-lg">
+        <h2 className="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-6">Personal Information</h2>
+        
+        <div className="bg-white/70 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-2xl p-8 space-y-6">
+            <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Email Address</label>
+                <div className="w-full bg-stone-50 dark:bg-black/20 border border-stone-200 dark:border-white/5 rounded-lg px-4 py-3 text-sm text-stone-500 cursor-not-allowed flex items-center justify-between">
                     {user?.email}
+                    {/* Fixed: Lock imported at top */}
+                    <Lock className="w-3 h-3 opacity-50" />
                 </div>
             </div>
-            <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-stone-500">First Name</label>
+            
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">First Name</label>
                     <input 
                         type="text" 
                         value={profileForm.firstName}
                         onChange={(e) => setProfileForm({...profileForm, firstName: e.target.value})}
-                        className="w-full bg-transparent border-b border-stone-800 focus:border-[#AB462F] py-3 text-sm text-white placeholder-stone-700 outline-none transition-all rounded-none"
+                        className="w-full bg-transparent border-b border-stone-300 dark:border-stone-700 focus:border-[#AB462F] py-2 text-sm text-[#1a1a1a] dark:text-white outline-none transition-colors"
                     />
                 </div>
-                <div className="space-y-2">
-                     <label className="text-[10px] font-bold uppercase tracking-widest text-stone-500">Last Name</label>
+                <div className="space-y-1.5">
+                     <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Last Name</label>
                      <input 
                         type="text" 
                         value={profileForm.lastName}
                         onChange={(e) => setProfileForm({...profileForm, lastName: e.target.value})}
-                        className="w-full bg-transparent border-b border-stone-800 focus:border-[#AB462F] py-3 text-sm text-white placeholder-stone-700 outline-none transition-all rounded-none" 
+                        className="w-full bg-transparent border-b border-stone-300 dark:border-stone-700 focus:border-[#AB462F] py-2 text-sm text-[#1a1a1a] dark:text-white outline-none transition-colors" 
                      />
                 </div>
             </div>
+
             <div className="pt-4">
                 <Button 
                     onClick={handleSaveChanges}
                     disabled={isUpdating}
-                    className="bg-[#AB462F] hover:bg-[#8f3a26] text-white rounded-full uppercase text-xs font-bold tracking-[0.15em] h-12 px-8 shadow-lg transition-all"
+                    className="bg-[#1a1a1a] hover:bg-[#AB462F] text-white rounded-full uppercase text-[10px] font-bold tracking-widest h-10 px-8 shadow-lg transition-all w-full md:w-auto"
                 >
-                    {isUpdating ? "Saving..." : "Save Changes"}
+                    {isUpdating ? "Saving..." : "Update Profile"}
                 </Button>
             </div>
         </div>
-    </div>
+    </motion.div>
   )
 
   if (loadingAuth) return <div className="min-h-screen flex items-center justify-center bg-transparent"><Loader2 className="w-8 h-8 animate-spin text-[#AB462F]" /></div>
@@ -384,90 +413,148 @@ export default function AccountDashboard() {
   return (
     <div className="min-h-screen w-full bg-transparent pt-32 pb-20 px-4 md:px-8 font-sans text-[#1a1a1a] dark:text-white">
         
-        {/* ORDER MODAL */}
+        {/* ORDER DETAILS MODAL */}
+        <AnimatePresence>
         {selectedOrder && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-                <div className="bg-white dark:bg-[#1a1a1a] w-full max-w-2xl rounded-xl shadow-2xl max-h-[90vh] overflow-y-auto relative">
-                    <button onClick={() => setSelectedOrder(null)} className="absolute top-4 right-4 p-2 bg-stone-100 dark:bg-white/10 rounded-full hover:bg-red-50 hover:text-red-500 transition-colors z-10"><X className="w-4 h-4" /></button>
-                    <div className="p-8">
-                        <div className="mb-8 text-center"><h3 className="text-xl font-black uppercase tracking-tight mb-2">Order Details</h3><p className="text-stone-500 text-xs uppercase tracking-widest">#{selectedOrder.id}</p></div>
-                        <div className="mb-10"><OrderTracker status={selectedOrder.status} /></div>
+            <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className="bg-white dark:bg-[#121212] w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden relative border border-white/10">
+                    
+                    {/* Modal Header */}
+                    <div className="bg-[#FAF9F6] dark:bg-white/5 px-8 py-6 border-b border-stone-100 dark:border-white/5 flex justify-between items-center">
+                        <div>
+                            <h3 className="text-lg font-black uppercase tracking-tight text-[#1a1a1a] dark:text-white">Order Details</h3>
+                            <p className="text-stone-400 text-[10px] uppercase tracking-widest font-mono">#{selectedOrder.id}</p>
+                        </div>
+                        <button onClick={() => setSelectedOrder(null)} className="p-2 hover:bg-stone-200 dark:hover:bg-white/10 rounded-full transition-colors"><X className="w-5 h-5 text-stone-500" /></button>
+                    </div>
+
+                    <div className="p-8 max-h-[70vh] overflow-y-auto">
+                        <div className="mb-8"><OrderTracker status={selectedOrder.status} /></div>
                         
-                        <div className="space-y-4 mb-8">
+                        <div className="space-y-3 mb-8">
                             {selectedOrder.items.map((item, idx) => (
-                                <div key={idx} className="flex gap-4 items-center p-3 border border-stone-100 dark:border-white/5 rounded-lg bg-stone-50/50 dark:bg-black/20">
-                                    <div className="w-12 h-12 bg-white rounded border border-stone-200 p-1 shrink-0"><img src={item.image} alt={item.name} className="w-full h-full object-contain" /></div>
-                                    <div className="flex-1"><h4 className="font-bold text-xs uppercase text-foreground">{item.name}</h4><p className="text-[10px] text-stone-500">{item.variant}</p></div>
-                                    <div className="text-right"><p className="font-bold text-sm">₱{item.price.toLocaleString()}</p><p className="text-[10px] text-stone-500">x{item.quantity}</p></div>
+                                <div key={idx} className="flex gap-4 items-center p-3 rounded-xl hover:bg-stone-50 dark:hover:bg-white/5 transition-colors">
+                                    <div className="w-14 h-14 bg-white rounded-lg border border-stone-100 p-1 shrink-0 overflow-hidden"><img src={item.image} alt={item.name} className="w-full h-full object-contain" /></div>
+                                    <div className="flex-1">
+                                        <h4 className="font-bold text-xs uppercase text-[#1a1a1a] dark:text-white">{item.name}</h4>
+                                        <p className="text-[10px] text-stone-500 uppercase tracking-wider">{item.variant}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-bold text-sm text-[#1a1a1a] dark:text-white">₱{item.price.toLocaleString()}</p>
+                                        <p className="text-[10px] text-stone-400">Qty: {item.quantity}</p>
+                                    </div>
                                 </div>
                             ))}
                         </div>
 
-                        <div className="border-t border-stone-200 dark:border-white/10 pt-6 grid grid-cols-2 gap-8">
+                        <div className="bg-stone-50 dark:bg-white/5 rounded-2xl p-6 grid grid-cols-2 gap-8">
                             <div>
-                                <h4 className="font-bold text-xs uppercase tracking-widest mb-3 text-stone-400">Delivery Address</h4>
-                                <div className="text-sm space-y-1 text-stone-700 dark:text-stone-300">
-                                    <p className="font-bold text-foreground">{selectedOrder.customer_details.firstName} {selectedOrder.customer_details.lastName}</p>
+                                <h4 className="font-bold text-[10px] uppercase tracking-widest mb-3 text-stone-400">Shipping To</h4>
+                                <div className="text-xs space-y-1 text-stone-600 dark:text-stone-300">
+                                    <p className="font-bold text-[#1a1a1a] dark:text-white">{selectedOrder.customer_details.firstName} {selectedOrder.customer_details.lastName}</p>
                                     <p>{selectedOrder.customer_details.address}</p>
                                     <p>{selectedOrder.customer_details.city}, {selectedOrder.customer_details.province}</p>
+                                    <p className="pt-1 text-stone-400">{selectedOrder.customer_details.phone}</p>
                                 </div>
                             </div>
-                            <div className="text-right space-y-2">
-                                <div className="flex justify-between text-sm"><span className="text-stone-500">Total Amount</span><span className="font-black text-lg text-[#AB462F]">₱{selectedOrder.total_amount.toLocaleString()}</span></div>
-                                <div className="flex justify-between text-xs"><span className="text-stone-500">Status</span><span className="font-bold uppercase">{selectedOrder.status}</span></div>
+                            <div className="text-right space-y-1">
+                                <div className="flex justify-between text-xs text-stone-500"><span>Payment</span><span className="font-medium text-[#1a1a1a] dark:text-white">{selectedOrder.payment_method || 'COD'}</span></div>
+                                <div className="flex justify-between text-xs text-stone-500"><span>Status</span><span className="font-bold uppercase text-[#1a1a1a] dark:text-white">{selectedOrder.status}</span></div>
+                                <div className="pt-3 flex justify-between items-baseline border-t border-stone-200 dark:border-white/10 mt-3">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Total</span>
+                                    <span className="font-black text-xl text-[#AB462F]">₱{selectedOrder.total_amount.toLocaleString()}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
+                </motion.div>
+            </motion.div>
         )}
+        </AnimatePresence>
 
-        {/* ADDRESS MODAL */}
+        {/* ADDRESS FORM MODAL */}
+        <AnimatePresence>
         {showAddressModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-                <div className="bg-white dark:bg-[#1a1a1a] w-full max-w-lg rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                    <div className="p-6 border-b border-stone-100 dark:border-stone-800 flex justify-between items-center"><h3 className="font-bold text-lg uppercase tracking-tight">New Address</h3><button onClick={() => setShowAddressModal(false)} className="p-2 hover:bg-stone-100 dark:hover:bg-white/10 rounded-full"><X className="w-4 h-4" /></button></div>
-                    <div className="flex-1 overflow-y-auto p-6">
-                        <form id="address-form" onSubmit={handleAddAddress} className="space-y-4">
+            <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className="bg-white dark:bg-[#1a1a1a] w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+                    <div className="p-6 border-b border-stone-100 dark:border-white/5 flex justify-between items-center bg-[#FAF9F6] dark:bg-white/5">
+                        <h3 className="font-black text-lg uppercase tracking-tight text-[#1a1a1a] dark:text-white">New Location</h3>
+                        <button onClick={() => setShowAddressModal(false)} className="p-2 hover:bg-stone-200 dark:hover:bg-white/10 rounded-full transition-colors"><X className="w-4 h-4 text-stone-500" /></button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-8">
+                        <form id="address-form" onSubmit={handleAddAddress} className="space-y-5">
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1"><label className="text-[10px] font-bold uppercase text-stone-400">First Name</label><input required className="w-full border rounded px-3 py-2 text-sm bg-transparent" value={newAddress.firstName} onChange={e => setNewAddress({...newAddress, firstName: e.target.value})} /></div>
-                                <div className="space-y-1"><label className="text-[10px] font-bold uppercase text-stone-400">Last Name</label><input required className="w-full border rounded px-3 py-2 text-sm bg-transparent" value={newAddress.lastName} onChange={e => setNewAddress({...newAddress, lastName: e.target.value})} /></div>
+                                <div className="space-y-1.5"><label className="text-[9px] font-bold uppercase tracking-widest text-stone-400">First Name</label><input required className="w-full border-b border-stone-300 dark:border-stone-700 bg-transparent py-2 text-sm outline-none focus:border-[#AB462F] transition-colors" value={newAddress.firstName} onChange={e => setNewAddress({...newAddress, firstName: e.target.value})} /></div>
+                                <div className="space-y-1.5"><label className="text-[9px] font-bold uppercase tracking-widest text-stone-400">Last Name</label><input required className="w-full border-b border-stone-300 dark:border-stone-700 bg-transparent py-2 text-sm outline-none focus:border-[#AB462F] transition-colors" value={newAddress.lastName} onChange={e => setNewAddress({...newAddress, lastName: e.target.value})} /></div>
                             </div>
-                            <div className="space-y-1"><label className="text-[10px] font-bold uppercase text-stone-400">Region</label><select required className="w-full border rounded px-3 py-2 text-sm bg-transparent" value={newAddress.region} onChange={e => setNewAddress({...newAddress, region: e.target.value, province: '', city: ''})}><option value="">Select Region</option>{ADDRESS_DATA.regions.map(r => <option key={r.code} value={r.code}>{r.name}</option>)}</select></div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1"><label className="text-[10px] font-bold uppercase text-stone-400">Province</label><select required disabled={!newAddress.region} className="w-full border rounded px-3 py-2 text-sm bg-transparent disabled:bg-stone-100" value={newAddress.province} onChange={e => setNewAddress({...newAddress, province: e.target.value, city: ''})}><option value="">Select Province</option>{getProvinces().map((p: any) => <option key={p} value={p}>{p}</option>)}</select></div>
-                                <div className="space-y-1"><label className="text-[10px] font-bold uppercase text-stone-400">City</label><select required disabled={!newAddress.province} className="w-full border rounded px-3 py-2 text-sm bg-transparent disabled:bg-stone-100" value={newAddress.city} onChange={e => setNewAddress({...newAddress, city: e.target.value})}><option value="">Select City</option>{getCities().map((c: any) => <option key={c} value={c}>{c}</option>)}</select></div>
+                            
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-bold uppercase tracking-widest text-stone-400">Region</label>
+                                <select required className="w-full border-b border-stone-300 dark:border-stone-700 bg-transparent py-2 text-sm outline-none focus:border-[#AB462F] transition-colors cursor-pointer" value={newAddress.region} onChange={e => setNewAddress({...newAddress, region: e.target.value, province: '', city: ''})}>
+                                    <option value="" className="text-black">Select Region</option>
+                                    {ADDRESS_DATA.regions.map(r => <option key={r.code} value={r.code} className="text-black">{r.name}</option>)}
+                                </select>
                             </div>
-                            <div className="space-y-1"><label className="text-[10px] font-bold uppercase text-stone-400">Barangay</label><input required className="w-full border rounded px-3 py-2 text-sm bg-transparent" value={newAddress.barangay} onChange={e => setNewAddress({...newAddress, barangay: e.target.value})} /></div>
-                            <div className="space-y-1"><label className="text-[10px] font-bold uppercase text-stone-400">Address</label><input required className="w-full border rounded px-3 py-2 text-sm bg-transparent" value={newAddress.address} onChange={e => setNewAddress({...newAddress, address: e.target.value})} /></div>
+
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1"><label className="text-[10px] font-bold uppercase text-stone-400">Postal</label><input required className="w-full border rounded px-3 py-2 text-sm bg-transparent" value={newAddress.postalCode} onChange={e => setNewAddress({...newAddress, postalCode: e.target.value})} /></div>
-                                <div className="space-y-1"><label className="text-[10px] font-bold uppercase text-stone-400">Phone</label><input required className="w-full border rounded px-3 py-2 text-sm bg-transparent" value={newAddress.phone} onChange={e => setNewAddress({...newAddress, phone: e.target.value})} /></div>
+                                <div className="space-y-1.5"><label className="text-[9px] font-bold uppercase tracking-widest text-stone-400">Province</label><select required disabled={!newAddress.region} className="w-full border-b border-stone-300 dark:border-stone-700 bg-transparent py-2 text-sm outline-none focus:border-[#AB462F] transition-colors disabled:opacity-50" value={newAddress.province} onChange={e => setNewAddress({...newAddress, province: e.target.value, city: ''})}><option value="" className="text-black">Select Province</option>{getProvinces().map((p: any) => <option key={p} value={p} className="text-black">{p}</option>)}</select></div>
+                                <div className="space-y-1.5"><label className="text-[9px] font-bold uppercase tracking-widest text-stone-400">City</label><select required disabled={!newAddress.province} className="w-full border-b border-stone-300 dark:border-stone-700 bg-transparent py-2 text-sm outline-none focus:border-[#AB462F] transition-colors disabled:opacity-50" value={newAddress.city} onChange={e => setNewAddress({...newAddress, city: e.target.value})}><option value="" className="text-black">Select City</option>{getCities().map((c: any) => <option key={c} value={c} className="text-black">{c}</option>)}</select></div>
+                            </div>
+
+                            <div className="space-y-1.5"><label className="text-[9px] font-bold uppercase tracking-widest text-stone-400">Barangay</label><input required className="w-full border-b border-stone-300 dark:border-stone-700 bg-transparent py-2 text-sm outline-none focus:border-[#AB462F] transition-colors" value={newAddress.barangay} onChange={e => setNewAddress({...newAddress, barangay: e.target.value})} /></div>
+                            <div className="space-y-1.5"><label className="text-[9px] font-bold uppercase tracking-widest text-stone-400">Street Address</label><input required className="w-full border-b border-stone-300 dark:border-stone-700 bg-transparent py-2 text-sm outline-none focus:border-[#AB462F] transition-colors" value={newAddress.address} onChange={e => setNewAddress({...newAddress, address: e.target.value})} /></div>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5"><label className="text-[9px] font-bold uppercase tracking-widest text-stone-400">Postal Code</label><input required className="w-full border-b border-stone-300 dark:border-stone-700 bg-transparent py-2 text-sm outline-none focus:border-[#AB462F] transition-colors" value={newAddress.postalCode} onChange={e => setNewAddress({...newAddress, postalCode: e.target.value})} /></div>
+                                <div className="space-y-1.5"><label className="text-[9px] font-bold uppercase tracking-widest text-stone-400">Mobile Number</label><input required className="w-full border-b border-stone-300 dark:border-stone-700 bg-transparent py-2 text-sm outline-none focus:border-[#AB462F] transition-colors" value={newAddress.phone} onChange={e => setNewAddress({...newAddress, phone: e.target.value})} /></div>
                             </div>
                         </form>
                     </div>
-                    <div className="p-6 border-t flex justify-end gap-3">
-                        <Button variant="ghost" onClick={() => setShowAddressModal(false)}>Cancel</Button>
-                        <Button type="submit" form="address-form" disabled={savingAddress} className="bg-[#AB462F] text-white">Save Address</Button>
+                    <div className="p-6 border-t border-stone-100 dark:border-white/5 flex justify-end gap-3 bg-[#FAF9F6] dark:bg-white/5">
+                        <Button variant="ghost" onClick={() => setShowAddressModal(false)} className="text-xs uppercase font-bold tracking-widest text-stone-500 hover:text-stone-800">Cancel</Button>
+                        <Button type="submit" form="address-form" disabled={savingAddress} className="bg-[#1a1a1a] text-white hover:bg-[#AB462F] rounded-full uppercase text-[10px] font-bold tracking-widest px-6 shadow-lg">Save Address</Button>
                     </div>
-                </div>
-            </div>
+                </motion.div>
+            </motion.div>
         )}
+        </AnimatePresence>
 
         <div className="max-w-6xl mx-auto">
-            <header className="mb-12 border-b border-stone-200 dark:border-white/10 pb-8 flex flex-col md:flex-row justify-between md:items-end gap-6">
-                <div><h1 className="text-4xl md:text-5xl font-serif font-medium tracking-tight mb-2 text-foreground">Hi, {user.firstName}</h1><p className="text-stone-500 text-sm">Welcome back to your account.</p></div>
-                <Button variant="ghost" onClick={handleLogout} className="text-xs uppercase font-bold text-stone-400 hover:text-[#AB462F] p-0 h-auto"><LogOut className="w-4 h-4 mr-2" /> Log Out</Button>
+            {/* Header */}
+            <header className="mb-12 md:mb-16 border-b border-stone-200 dark:border-white/10 pb-8 flex flex-col md:flex-row justify-between md:items-end gap-6">
+                <div>
+                    <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter text-[#1a1a1a] dark:text-white leading-[0.9] mb-3">
+                        Hi, <span className="font-serif italic font-normal text-[#AB462F] lowercase tracking-normal">{user.firstName || 'Beauty'}</span>
+                    </h1>
+                    <p className="text-stone-500 text-sm md:text-base font-light">Welcome back to your personal dashboard.</p>
+                </div>
+                <Button variant="outline" onClick={handleLogout} className="text-[10px] uppercase font-bold tracking-widest border-stone-200 dark:border-white/10 hover:bg-stone-50 dark:hover:bg-white/5 h-10 px-6 rounded-full"><LogOut className="w-3 h-3 mr-2" /> Sign Out</Button>
             </header>
-            <div className="flex flex-col lg:flex-row gap-12">
-                <nav className="w-full lg:w-64 flex-shrink-0 space-y-1">
-                    {[{ id: 'orders', label: 'My Orders', icon: Package }, { id: 'addresses', label: 'Addresses', icon: MapPin }, { id: 'profile', label: 'Account Details', icon: User }].map((item) => (
-                        <button key={item.id} onClick={() => setActiveTab(item.id)} className={`w-full flex items-center justify-between px-4 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-lg ${activeTab === item.id ? 'bg-[#1a1a1a] text-white dark:bg-white dark:text-black shadow-lg' : 'text-stone-500 hover:bg-stone-100 dark:hover:bg-white/10'}`}>
+
+            <div className="flex flex-col lg:flex-row gap-12 lg:gap-20">
+                {/* Navigation Sidebar */}
+                <nav className="w-full lg:w-64 flex-shrink-0 space-y-2">
+                    {[
+                        { id: 'orders', label: 'My Orders', icon: Package }, 
+                        { id: 'addresses', label: 'Addresses', icon: MapPin }, 
+                        { id: 'profile', label: 'Account Details', icon: User }
+                    ].map((item) => (
+                        <button 
+                            key={item.id} 
+                            onClick={() => setActiveTab(item.id)} 
+                            className={`w-full flex items-center justify-between px-5 py-4 text-xs font-bold uppercase tracking-widest transition-all rounded-xl ${
+                                activeTab === item.id 
+                                ? 'bg-[#1a1a1a] text-white shadow-lg scale-[1.02]' 
+                                : 'text-stone-500 hover:bg-stone-100 dark:hover:bg-white/10 hover:pl-6'
+                            }`}
+                        >
                             <span className="flex items-center gap-3"><item.icon className="w-4 h-4" />{item.label}</span>
-                            {activeTab === item.id && <ChevronRight className="w-4 h-4" />}
+                            {activeTab === item.id && <ChevronRight className="w-3 h-3" />}
                         </button>
                     ))}
                 </nav>
+
+                {/* Main Content Area */}
                 <main className="flex-1 min-h-[500px]">
                     {activeTab === 'orders' && <OrdersView />}
                     {activeTab === 'addresses' && <AddressesView />}
