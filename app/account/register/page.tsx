@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/lib/supabase"
-import { Chrome, Apple, Facebook, Twitter, Github, Linkedin, Instagram, Gitlab, Twitch } from "lucide-react"
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({ firstName: "", lastName: "", email: "", password: "" })
@@ -55,28 +54,7 @@ export default function RegisterPage() {
     }
   }
 
-  const handleSSO = async (provider: string) => {
-    setIsLoading(true)
-    try {
-        const { error } = await supabase.auth.signInWithOAuth({
-            provider: provider.toLowerCase() as any, // e.g., 'google', 'apple'
-            options: {
-                redirectTo: `${window.location.origin}/auth/callback`,
-            }
-        })
-        if (error) throw error
-    } catch (error: any) {
-        toast({
-            title: "SSO Error",
-            description: error.message,
-            variant: "destructive"
-        })
-        setIsLoading(false)
-    }
-  }
-
   return (
-    // MODIFIED: Added bg-transparent to ensure background texture shows
     <div className="flex flex-col items-center justify-center w-full px-4 pt-32 pb-12 bg-transparent">
         <div className="w-full max-w-[480px] flex flex-col items-center">
           
@@ -132,45 +110,6 @@ export default function RegisterPage() {
                {isLoading ? "Creating..." : "Create Account"}
              </Button>
           </form>
-
-          {/* Spacer & Divider */}
-          <div className="w-full mt-12 mb-8">
-            <div className="relative flex items-center justify-center mb-8">
-                <div className="h-px bg-stone-200 dark:bg-stone-800 w-full absolute" />
-                <span className="bg-[#FDFCFA] dark:bg-[#1a1a1a] px-4 text-[10px] uppercase tracking-widest text-stone-400 relative z-10">Or Sign Up With</span>
-            </div>
-
-            {/* Logo-only SSO Buttons */}
-            <div className="flex justify-center gap-3 flex-wrap max-w-[400px] mx-auto">
-                <Button variant="outline" size="icon" className="h-12 w-12 rounded-full border-stone-200 dark:border-stone-800 bg-white dark:bg-white/5 hover:bg-stone-50 dark:hover:bg-stone-800 hover:scale-110 transition-all duration-300 shadow-sm" onClick={() => handleSSO('Google')}>
-                    <Chrome className="w-5 h-5 text-stone-600 dark:text-stone-300" />
-                </Button>
-                <Button variant="outline" size="icon" className="h-12 w-12 rounded-full border-stone-200 dark:border-stone-800 bg-white dark:bg-white/5 hover:bg-stone-50 dark:hover:bg-stone-800 hover:scale-110 transition-all duration-300 shadow-sm" onClick={() => handleSSO('Apple')}>
-                    <Apple className="w-5 h-5 text-stone-600 dark:text-stone-300" />
-                </Button>
-                <Button variant="outline" size="icon" className="h-12 w-12 rounded-full border-stone-200 dark:border-stone-800 bg-white dark:bg-white/5 hover:bg-stone-50 dark:hover:bg-stone-800 hover:scale-110 transition-all duration-300 shadow-sm" onClick={() => handleSSO('Facebook')}>
-                    <Facebook className="w-5 h-5 text-stone-600 dark:text-stone-300" />
-                </Button>
-                <Button variant="outline" size="icon" className="h-12 w-12 rounded-full border-stone-200 dark:border-stone-800 bg-white dark:bg-white/5 hover:bg-stone-50 dark:hover:bg-stone-800 hover:scale-110 transition-all duration-300 shadow-sm" onClick={() => handleSSO('Twitter')}>
-                    <Twitter className="w-5 h-5 text-stone-600 dark:text-stone-300" />
-                </Button>
-                <Button variant="outline" size="icon" className="h-12 w-12 rounded-full border-stone-200 dark:border-stone-800 bg-white dark:bg-white/5 hover:bg-stone-50 dark:hover:bg-stone-800 hover:scale-110 transition-all duration-300 shadow-sm" onClick={() => handleSSO('GitHub')}>
-                    <Github className="w-5 h-5 text-stone-600 dark:text-stone-300" />
-                </Button>
-                <Button variant="outline" size="icon" className="h-12 w-12 rounded-full border-stone-200 dark:border-stone-800 bg-white dark:bg-white/5 hover:bg-stone-50 dark:hover:bg-stone-800 hover:scale-110 transition-all duration-300 shadow-sm" onClick={() => handleSSO('LinkedIn')}>
-                    <Linkedin className="w-5 h-5 text-stone-600 dark:text-stone-300" />
-                </Button>
-                <Button variant="outline" size="icon" className="h-12 w-12 rounded-full border-stone-200 dark:border-stone-800 bg-white dark:bg-white/5 hover:bg-stone-50 dark:hover:bg-stone-800 hover:scale-110 transition-all duration-300 shadow-sm" onClick={() => handleSSO('Instagram')}>
-                    <Instagram className="w-5 h-5 text-stone-600 dark:text-stone-300" />
-                </Button>
-                <Button variant="outline" size="icon" className="h-12 w-12 rounded-full border-stone-200 dark:border-stone-800 bg-white dark:bg-white/5 hover:bg-stone-50 dark:hover:bg-stone-800 hover:scale-110 transition-all duration-300 shadow-sm" onClick={() => handleSSO('GitLab')}>
-                    <Gitlab className="w-5 h-5 text-stone-600 dark:text-stone-300" />
-                </Button>
-                <Button variant="outline" size="icon" className="h-12 w-12 rounded-full border-stone-200 dark:border-stone-800 bg-white dark:bg-white/5 hover:bg-stone-50 dark:hover:bg-stone-800 hover:scale-110 transition-all duration-300 shadow-sm" onClick={() => handleSSO('Twitch')}>
-                    <Twitch className="w-5 h-5 text-stone-600 dark:text-stone-300" />
-                </Button>
-            </div>
-          </div>
 
         </div>
     </div>

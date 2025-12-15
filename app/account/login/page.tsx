@@ -1,80 +1,62 @@
 "use client"
 
 import * as React from "react"
-import { useState } from "react"
+import { useEffect, useState, Suspense } from "react" // 1. Import Suspense
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
-import { Chrome, Apple, Facebook, Twitter, Mail, Eye, EyeOff, ArrowRight } from "lucide-react" 
-// ASSUMPTION: Supabase is imported here
-import { supabase } from "@/lib/supabase" 
+import { Eye, EyeOff, ArrowRight } from "lucide-react"
+import { supabase } from "@/lib/supabase"
 
-export default function LoginPage() {
+// --- FIREBASE IMPORTS ---
+import { onAuthStateChanged, signInWithPopup } from "firebase/auth"
+import { auth, googleProvider } from "@/lib/firebase"
+
+// 2. Create the inner component that handles all the logic
+function LoginForm() {
   const [formData, setFormData] = useState({ email: "", password: "" })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   
   const router = useRouter()
+  const searchParams = useSearchParams() // This hook requires Suspense
   const { toast } = useToast()
 
-  // --- 1. PHP/XAMPP CONNECTION LOGIC (UNCHANGED) ---
+  // 1. Existing Supabase Email/Password Login
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    // ... (Original PHP/XAMPP logic remains here) ...
 
     try {
-        // NOTE: Ensure your XAMPP Apache server is running.
-        // Create a folder 'mia-backend' in htdocs and place 'login.php' there.
-        const response = await fetch("http://localhost/mia-backend/login.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                email: formData.email,
-                password: formData.password
-            }),
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: formData.email,
+            password: formData.password,
         })
 
-        const data = await response.json()
+        if (error) throw error
 
-        if (data.success) {
-            // Success: Save user to local storage for the Chatbot/Header to detect
+        if (data.user) {
             localStorage.setItem("mia-beauty-profile", JSON.stringify({
-                name: data.user.name, 
                 email: data.user.email,
-                skinType: data.user.skin_type || "normal"
+                id: data.user.id,
             }))
-
-            toast({
-                title: "Welcome Back!",
-                description: `Successfully logged in as ${data.user.name}.`,
-                duration: 2000,
-            })
-            
-            // Redirect to Home
-            router.push("/")
-        } else {
-            // PHP returned an error (e.g., "Invalid password")
-            throw new Error(data.message || "Login failed")
         }
+
+        toast({
+            title: "Welcome Back!",
+            description: "Successfully logged in.",
+            duration: 2000,
+        })
+        
+        const redirectPath = searchParams.get('redirect') || "/account"
+        router.push(redirectPath) 
 
     } catch (error: any) {
-        // Fallback for Demo/Classmate purpose if XAMPP isn't running yet
-        // REMOVE THIS BLOCK if you want strict PHP-only dependency
-        if (formData.email === "admin@example.com" && formData.password === "password") {
-             localStorage.setItem("mia-beauty-profile", JSON.stringify({ name: "Admin User", email: "admin@example.com" }))
-             toast({ title: "Demo Login Success", description: "Logged in via fallback mode.", duration: 2000 })
-             router.push("/")
-             return
-        }
-
         console.error("Login Error:", error)
         toast({
             title: "Access Denied",
-            description: error.message === "Failed to fetch" 
-                ? "Cannot connect to Database. Is XAMPP running?" 
-                : error.message,
+            description: error.message || "Invalid login credentials.",
             variant: "destructive",
         })
     } finally {
@@ -82,78 +64,57 @@ export default function LoginPage() {
     }
   }
 
-// --- 2. UPDATED SSO/PASSWORDLESS LOGIC ---
-  const handleSSO = async (provider: string) => {
-    
-    // A. Handle Magic Link Flow (Yes/No Verification)
-    if (provider === 'Email') {
-      if (!formData.email) {
-        return toast({
-          title: "Email Required",
-          description: "Please enter your email in the field above to receive a login link.",
-          variant: "destructive",
-        })
-      }
-      setIsLoading(true)
-
-      try {
-        const { error } = await supabase.auth.signInWithOtp({
-          email: formData.email,
-          options: {
-            shouldCreateUser: false, 
-            // Removed: channel: 'email' (to revert to magic link)
-            emailRedirectTo: '/', // Redirect user to home page after clicking link
-          }
-        })
-        
-        if (error) throw error
-
-        toast({
-          title: "Confirmation Sent!",
-          description: `Check your inbox at ${formData.email} and click the link to sign in.`,
-          duration: 4000,
-        })
-        
-        // NO REDIRECTION needed here, the user waits for the email.
-
-      } catch (error: any) {
-        toast({
-          title: "Login Failed",
-          description: error.message || "Could not send link. Account may not exist.",
-          variant: "destructive",
-        })
-      } finally {
-        setIsLoading(false)
-      }
-      return
-    }
-    
-    // B. Handle Standard OAuth (Google, Facebook, etc.)
-    toast({
-      title: `Connecting to ${provider}`,
-      description: "Redirecting to secure authentication...",
-      duration: 1500,
-    })
-    
+  // 2. NEW Firebase Google SSO Handler
+  const handleGoogleLogin = async () => {
+    setIsLoading(true)
     try {
-        const { error } = await supabase.auth.signInWithOAuth({
-            provider: provider.toLowerCase() as any,
-            options: {
-                redirectTo: `${window.location.origin}/auth/callback`,
-            }
-        })
-        if (error) throw error
+      const result = await signInWithPopup(auth, googleProvider)
+      const user = result.user
+
+      if (user) {
+         // CRITICAL: Save to Local Storage so Checkout page works
+         localStorage.setItem("mia-beauty-profile", JSON.stringify({
+             email: user.email,
+             id: user.uid, 
+             firstName: user.displayName?.split(" ")[0] || "",
+             lastName: user.displayName?.split(" ")[1] || ""
+         }))
+      }
+
+      toast({
+         title: "Welcome!",
+         description: `Logged in as ${user.email}`,
+         duration: 2000,
+      })
+
+      const redirectPath = searchParams.get('redirect') || "/account"
+      router.push(redirectPath)
+
     } catch (error: any) {
-        toast({ title: "SSO Error", description: error.message, variant: "destructive" })
+      console.error("Google Login Error:", error)
+      toast({
+        title: "Login Failed",
+        description: error.message,
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
     }
   }
 
+  useEffect(() => {
+    // Check if user is already logged in via Firebase
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        router.replace("/account")
+      }
+    })
+    return () => unsubscribe()
+  }, [])
+  
   return (
-    // MODIFIED: Changed solid background to transparent
-    <div className="min-h-screen w-full bg-transparent flex items-center justify-center pt-24 pb-12 px-4">
-        <div className="w-full max-w-[420px] bg-white dark:bg-white/5 border border-stone-100 dark:border-stone-800 shadow-2xl rounded-2xl p-8 md:p-10 relative overflow-hidden">
+    <div className="w-full max-w-[420px] bg-white dark:bg-white/5 border border-stone-100 dark:border-stone-800 shadow-2xl rounded-2xl p-8 md:p-10 relative overflow-hidden">
           
-          {/* Decorative Top Border */}
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#AB462F] to-[#E6D5C4]" />
 
           <div className="text-center mb-10">
@@ -211,29 +172,43 @@ export default function LoginPage() {
              </Button>
           </form>
 
-          {/* --- LIMITED SSO (TOP 5) --- */}
+          {/* --- GOOGLE SSO SECTION --- */}
           <div className="mt-8">
             <div className="relative flex items-center justify-center mb-6">
                 <div className="h-px bg-stone-200 dark:bg-stone-800 w-full absolute" />
                 <span className="bg-white dark:bg-[#121212] px-3 text-[10px] uppercase tracking-widest text-stone-400 relative z-10 font-bold">Or Connect With</span>
             </div>
 
-            <div className="grid grid-cols-5 gap-2">
-                <Button variant="outline" size="icon" className="w-full h-10 rounded-lg border-stone-200 dark:border-stone-800 hover:bg-stone-50 hover:scale-105 transition-transform" onClick={() => handleSSO('Google')}>
-                    <Chrome className="w-4 h-4" />
-                </Button>
-                <Button variant="outline" size="icon" className="w-full h-10 rounded-lg border-stone-200 dark:border-stone-800 hover:bg-stone-50 hover:scale-105 transition-transform" onClick={() => handleSSO('Apple')}>
-                    <Apple className="w-4 h-4" />
-                </Button>
-                <Button variant="outline" size="icon" className="w-full h-10 rounded-lg border-stone-200 dark:border-stone-800 hover:bg-stone-50 hover:scale-105 transition-transform" onClick={() => handleSSO('Facebook')}>
-                    <Facebook className="w-4 h-4 text-blue-600" />
-                </Button>
-                <Button variant="outline" size="icon" className="w-full h-10 rounded-lg border-stone-200 dark:border-stone-800 hover:bg-stone-50 hover:scale-105 transition-transform" onClick={() => handleSSO('Twitter')}>
-                    <Twitter className="w-4 h-4 text-sky-500" />
-                </Button>
-                {/* Email/Magic Link Button */}
-                <Button variant="outline" size="icon" className="w-full h-10 rounded-lg border-stone-200 dark:border-stone-800 hover:bg-stone-50 hover:scale-105 transition-transform" onClick={() => handleSSO('Email')}>
-                    <Mail className="w-4 h-4" />
+            <div className="w-full">
+                <Button 
+                    variant="outline" 
+                    className="w-full h-12 rounded-lg border-stone-200 dark:border-stone-800 hover:bg-stone-50 hover:border-blue-200 hover:text-blue-600 transition-all flex items-center justify-center gap-3 group" 
+                    onClick={handleGoogleLogin}
+                    disabled={isLoading}
+                    type="button"
+                >
+                    {/* Google SVG Logo */}
+                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+                        <path
+                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                            fill="#4285F4"
+                        />
+                        <path
+                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                            fill="#34A853"
+                        />
+                        <path
+                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.26..81-.58z"
+                            fill="#FBBC05"
+                        />
+                        <path
+                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                            fill="#EA4335"
+                        />
+                    </svg>
+                    <span className="text-xs font-bold uppercase tracking-widest text-stone-500 group-hover:text-stone-700">
+                        Sign in with Google
+                    </span>
                 </Button>
             </div>
           </div>
@@ -248,6 +223,16 @@ export default function LoginPage() {
           </div>
 
         </div>
+  )
+}
+
+// 3. Export the wrapper component with the Suspense boundary
+export default function LoginPage() {
+  return (
+    <div className="min-h-screen w-full bg-transparent flex items-center justify-center pt-24 pb-12 px-4">
+      <Suspense fallback={<div className="text-stone-500 text-sm">Loading Login...</div>}>
+        <LoginForm />
+      </Suspense>
     </div>
   )
 }
