@@ -1,8 +1,9 @@
 "use client"
+export const dynamic = "force-dynamic"
 
-// 1. ADD SUSPENSE IMPORT
 import * as React from "react"
-import { useState, useMemo, useEffect, Suspense } from "react" 
+// FIX 1: Added Suspense to imports
+import { useState, useMemo, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
@@ -669,7 +670,7 @@ const ShopCard = ({ product, onClick, onAdd }: { product: Product, onClick: () =
   )
 }
 
-// 2. RENAMED ORIGINAL COMPONENT (Logic moved here)
+// 2. FIX 2: RENAMED ORIGINAL COMPONENT (Removed export default)
 function ShopContent() {
   const { toast } = useToast()
   const { addItem } = useCart()
@@ -851,7 +852,7 @@ function ShopContent() {
   )
 }
 
-// 3. NEW EXPORTED WRAPPER (This fixes the build error)
+// 3. FIX 3: ADDED NEW EXPORTED WRAPPER (This fixes the build error)
 export default function ShopPage() {
   return (
     <Suspense fallback={
