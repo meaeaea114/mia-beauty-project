@@ -12,7 +12,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth"
 import { LogOut, Package, MapPin, User, ChevronRight, Loader2, X, CheckCircle2, Clock, Truck, Check, Plus, Trash2, Lock } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
-// --- LOCATION DATA (EXPANDED TO BE COMPREHENSIVE) ---
+// --- UPDATED LOCATION DATA (Comprehensive List) ---
 const PHILIPPINE_ADDRESS_DATA = {
     regions: [
         { name: "National Capital Region (NCR)", code: "NCR" },
@@ -53,28 +53,37 @@ const PHILIPPINE_ADDRESS_DATA = {
         "BARMM": ["Maguindanao", "Lanao del Sur", "Basilan", "Sulu", "Tawi-Tawi", "Cotabato City (Independent)"]
     },
     cities: {
-        "Metro Manila": ["Manila", "Quezon City", "Makati", "Taguig", "Pasig", "Pasay", "Caloocan", "Mandaluyong", "San Juan", "Paranaque", "Las Pinas", "Muntinlupa", "Malabon", "Navotas", "Valenzuela", "Marikina"],
-        "Batangas": ["Batangas City", "Lipa City", "Tanauan City", "Sto. Tomas", "Calaca", "Nasugbu"],
-        "Cavite": ["Bacoor", "Dasmarinas", "Imus", "Tagaytay", "General Trias", "Trece Martires", "Kawit"],
-        "Laguna": ["Calamba", "Santa Rosa", "San Pablo", "Binan", "Cabuyao", "San Pedro", "Los Baños"],
-        "Quezon": ["Lucena City", "Tayabas City", "Gumaca"],
-        "Rizal": ["Antipolo City", "Cainta", "Taytay", "Angono"],
-        "Pampanga": ["San Fernando City", "Angeles City", "Mabalacat City", "Guagua"],
-        "Bulacan": ["Malolos City", "San Jose del Monte City", "Meycauayan City", "Sta. Maria"],
-        "Tarlac": ["Tarlac City", "Capas"],
-        "Zambales": ["Olongapo City", "Subic"],
-        "Cebu": ["Cebu City", "Mandaue", "Lapu-Lapu", "Talisay City", "Toledo City", "Danao City"],
-        "Iloilo": ["Iloilo City", "Passi City", "Pototan"],
-        "Negros Occidental": ["Bacolod City", "Talisay City", "Silay City", "Bago City"],
+        // NCR
+        "Metro Manila": ["Manila", "Quezon City", "Makati", "Taguig", "Pasig", "Pasay", "Caloocan", "Mandaluyong", "San Juan", "Paranaque", "Las Pinas", "Muntinlupa", "Malabon", "Navotas", "Valenzuela", "Marikina", "Pateros"],
+        
+        // Region VII (Central Visayas)
+        "Negros Oriental": [
+            "Dumaguete City", "Bais City", "Bayawan City", "Canlaon City", "Guihulngan City", "Tanjay City", 
+            "Amlan", "Ayungon", "Bacong", "Basay", "Bindoy", "Dauin", "Jimalalud", "La Libertad", "Mabinay", "Manjuyod", "Pamplona", "San Jose", "Santa Catalina", "Siaton", "Sibulan", "Tayasan", "Valencia", "Vallehermoso", "Zamboanguita"
+        ],
+        "Cebu": ["Cebu City", "Mandaue", "Lapu-Lapu", "Talisay City", "Toledo City", "Danao City", "Carcar City", "Naga City", "Bogo City", "Consolacion", "Liloan", "Minglanilla"],
+        "Bohol": ["Tagbilaran City", "Panglao", "Dauis", "Baclayon"],
+        "Siquijor": ["Siquijor", "Larena", "Enrique Villanueva", "Maria", "Lazi", "San Juan"],
+
+        // Region IV-A
+        "Batangas": ["Batangas City", "Lipa City", "Tanauan City", "Sto. Tomas", "Calaca", "Nasugbu", "Lemery", "Rosario", "San Juan", "Bauan"],
+        "Cavite": ["Bacoor", "Dasmarinas", "Imus", "Tagaytay", "General Trias", "Trece Martires", "Kawit", "Silang", "Carmona", "Tanza"],
+        "Laguna": ["Calamba", "Santa Rosa", "San Pablo", "Binan", "Cabuyao", "San Pedro", "Los Baños", "Sta. Cruz"],
+        "Rizal": ["Antipolo City", "Cainta", "Taytay", "Angono", "Binangonan", "Rodriguez", "San Mateo"],
+        "Quezon": ["Lucena City", "Tayabas City", "Gumaca", "Candelaria", "Sariaya"],
+
+        // Region III
+        "Pampanga": ["San Fernando City", "Angeles City", "Mabalacat City", "Guagua", "Lubao", "Mexico"],
+        "Bulacan": ["Malolos City", "San Jose del Monte City", "Meycauayan City", "Sta. Maria", "Marilao", "Baliuag"],
+        
+        // Common defaults for other provinces to prevent empty lists
+        "Benguet": ["Baguio City", "La Trinidad"],
+        "Iloilo": ["Iloilo City", "Passi City", "Oton", "Pavia"],
+        "Negros Occidental": ["Bacolod City", "Talisay City", "Silay City", "Bago City", "Cadiz City"],
         "Davao del Sur": ["Davao City", "Digos City"],
         "Misamis Oriental": ["Cagayan de Oro City", "Gingoog City"],
         "South Cotabato": ["General Santos City", "Koronadal City"],
-        "Benguet": ["Baguio City", "La Trinidad"],
-        "Albay": ["Legazpi City", "Tabaco City"],
-        "Palawan": ["Puerto Princesa City"],
-        "Zamboanga del Sur": ["Zamboanga City (Independent)"],
-        "Leyte": ["Tacloban City", "Ormoc City"],
-        "North Cotabato": ["Kidapawan City"]
+        "Palawan": ["Puerto Princesa City", "El Nido", "Coron"]
     }
 } as const
 
@@ -174,9 +183,12 @@ export default function AccountDashboard() {
             const { data: orderData } = await supabase.from('orders')
                 .select('*').eq('customer_email', email).order('created_at', { ascending: false })
             
-            // Fetch Addresses - Now attempts fetch for ALL user types (requires user_id column to be TEXT in DB)
+            // FIX: Fetch Addresses by EMAIL instead of user_id to support hybrid login
             const { data: fetchedAddresses } = await supabase.from('addresses')
-                    .select('*').eq('user_id', uid).order('created_at', { ascending: false })
+                    .select('*')
+                    .eq('email', email) // <--- CHANGED FROM user_id TO email
+                    .order('created_at', { ascending: false })
+
             const addressData = fetchedAddresses || []
 
             if (mounted) {
@@ -205,7 +217,7 @@ export default function AccountDashboard() {
             return; 
         }
 
-        // Step 2: Check Firebase (Google Login) - Only if Supabase failed
+        // Step 2: Check Firebase (Google Login)
         firebaseUnsub = onAuthStateChanged(auth, (firebaseUser) => {
             if (firebaseUser) {
                 const splitName = firebaseUser.displayName ? firebaseUser.displayName.split(" ") : ["User", ""]
@@ -283,13 +295,14 @@ export default function AccountDashboard() {
       e.preventDefault()
       
       const userId = user?.id;
+      const userEmail = user?.email; // Get email from user state
       if (!userId) return;
       
       setSavingAddress(true)
       try {
-          // IMPORTANT: This insert will only work for Google Users if 'user_id' column is TEXT type in Supabase
           const { data, error } = await supabase.from('addresses').insert({
               user_id: userId,
+              email: userEmail, // <--- ADD THIS: Save email with the address
               first_name: newAddress.firstName,
               last_name: newAddress.lastName,
               phone: newAddress.phone,
@@ -401,7 +414,6 @@ export default function AccountDashboard() {
             <h2 className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Saved Locations</h2>
             <Button 
                 onClick={() => {
-                    // Clear the form before opening for a new address
                     setNewAddress({ firstName: user?.firstName || "", lastName: user?.lastName || "", phone: "", address: "", region: "", province: "", city: "", barangay: "", postalCode: "" });
                     setShowAddressModal(true);
                 }} 

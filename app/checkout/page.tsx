@@ -14,7 +14,7 @@ import { supabase } from "@/lib/supabase"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
-// --- LOCATION DATA (EXPANDED TO BE COMPREHENSIVE) ---
+// --- LOCATION DATA ---
 const PHILIPPINE_ADDRESS_DATA = {
     regions: [
         { name: "National Capital Region (NCR)", code: "NCR" },
@@ -76,7 +76,8 @@ const PHILIPPINE_ADDRESS_DATA = {
         "Palawan": ["Puerto Princesa City"],
         "Zamboanga del Sur": ["Zamboanga City (Independent)"],
         "Leyte": ["Tacloban City", "Ormoc City"],
-        "North Cotabato": ["Kidapawan City"]
+        "North Cotabato": ["Kidapawan City"],
+        "Negros Oriental": ["Dumaguete City", "Bais City", "Bayawan City", "Canlaon City", "Guihulngan City", "Tanjay City"]
     }
 } as const
 
@@ -88,7 +89,6 @@ export default function CheckoutPage() {
   const { toast } = useToast()
   const router = useRouter()
 
-  
   const [isLoading, setIsLoading] = useState(false)
   const [fetchingData, setFetchingData] = useState(true)
   const [paymentMethod, setPaymentMethod] = useState("card") 
@@ -146,6 +146,7 @@ export default function CheckoutPage() {
 
   const initCheckout = useCallback(async () => {
     try {
+        // 1. Check Supabase (Email/Pass Login)
         const { data: { session } } = await supabase.auth.getSession()
         
         if (session?.user) {
@@ -164,40 +165,53 @@ export default function CheckoutPage() {
                 address: "", barangay: "", postalCode: "", phone: "" 
             }
 
+            // Fetch by Email
             const { data: addresses } = await supabase
                 .from('addresses')
                 .select('*')
-                .eq('user_id', currentUser.id)
+                .eq('email', currentUser.email) // <--- Changed from user_id to email
                 .order('is_default', { ascending: false })
-                // .limit(1)  <-- REMOVED THIS TO FETCH ALL ADDRESSES
 
             if (addresses && addresses.length > 0) {
                 setSavedAddresses(addresses)
                 fillAddressForm(addresses[0], initialFormData)
-            } else {
-                const { data: lastOrder } = await supabase
-                    .from('orders')
-                    .select('customer_details')
-                    .eq('customer_email', currentUser.email)
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .maybeSingle()
-                
-                if (lastOrder?.customer_details) {
-                     fillAddressForm(lastOrder.customer_details, initialFormData)
-                } else {
-                    setFormData(initialFormData)
-                }
             }
         } else {
-            // Guest Logic: Load draft
-            const draft = localStorage.getItem("checkout_draft")
-            if (draft) {
-                const parsed = JSON.parse(draft)
-                setFormData(parsed)
-                if(parsed.region) setSelectedRegion(parsed.region)
-                if(parsed.region && parsed.province) setSelectedProvince(parsed.province)
-                if(parsed.region && parsed.province && parsed.city) setSelectedCity(parsed.city)
+            // 2. Check Firebase / Google (Via Local Storage)
+            const profile = localStorage.getItem("mia-profile")
+            if (profile) {
+                 const { id, email, firstName, lastName } = JSON.parse(profile)
+                 setUser({ name: firstName + " " + lastName, email, id })
+                 
+                 const initialFormData = {
+                    email: email || "",
+                    firstName: firstName || "",
+                    lastName: lastName || "",
+                    address: "", barangay: "", postalCode: "", phone: "" 
+                 }
+                 setFormData(initialFormData)
+
+                 // Fetch addresses by Email
+                 const { data: addresses } = await supabase
+                    .from('addresses')
+                    .select('*')
+                    .eq('email', email) // <--- Changed from user_id to email
+                    .order('is_default', { ascending: false })
+                 
+                 if (addresses && addresses.length > 0) {
+                    setSavedAddresses(addresses)
+                    fillAddressForm(addresses[0], initialFormData)
+                 }
+            } else {
+                // 3. Guest Logic: Load draft from browser storage
+                const draft = localStorage.getItem("checkout_draft")
+                if (draft) {
+                    const parsed = JSON.parse(draft)
+                    setFormData(parsed)
+                    if(parsed.region) setSelectedRegion(parsed.region)
+                    if(parsed.region && parsed.province) setSelectedProvince(parsed.province)
+                    if(parsed.region && parsed.province && parsed.city) setSelectedCity(parsed.city)
+                }
             }
         }
     } catch (error) {
