@@ -14,28 +14,71 @@ import { supabase } from "@/lib/supabase"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
-// --- LOCATION DATA ---
-const ADDRESS_DATA = {
+// --- LOCATION DATA (EXPANDED TO BE COMPREHENSIVE) ---
+const PHILIPPINE_ADDRESS_DATA = {
     regions: [
         { name: "National Capital Region (NCR)", code: "NCR" },
-        { name: "CALABARZON (Region IV-A)", code: "IV-A" },
-        { name: "Central Luzon (Region III)", code: "III" },
-        { name: "Central Visayas (Region VII)", code: "VII" },
+        { name: "Cordillera Administrative Region (CAR)", code: "CAR" },
         { name: "Ilocos Region (Region I)", code: "I" },
         { name: "Cagayan Valley (Region II)", code: "II" },
+        { name: "Central Luzon (Region III)", code: "III" },
+        { name: "CALABARZON (Region IV-A)", code: "IV-A" },
         { name: "MIMAROPA (Region IV-B)", code: "IV-B" },
         { name: "Bicol Region (Region V)", code: "V" },
-        { name: "Cordillera Administrative Region (CAR)", code: "CAR" },
+        { name: "Western Visayas (Region VI)", code: "VI" },
+        { name: "Central Visayas (Region VII)", code: "VII" },
+        { name: "Eastern Visayas (Region VIII)", code: "VIII" },
+        { name: "Zamboanga Peninsula (Region IX)", code: "IX" },
+        { name: "Northern Mindanao (Region X)", code: "X" },
+        { name: "Davao Region (Region XI)", code: "XI" },
+        { name: "SOCCSKSARGEN (Region XII)", code: "XII" },
+        { name: "Caraga (Region XIII)", code: "XIII" },
+        { name: "BARMM", code: "BARMM" },
     ],
     provinces: {
         "NCR": ["Metro Manila"],
+        "CAR": ["Benguet", "Ifugao", "Kalinga", "Mountain Province", "Abra", "Apayao"],
+        "I": ["Pangasinan", "La Union", "Ilocos Sur", "Ilocos Norte"],
+        "II": ["Cagayan", "Isabela", "Nueva Vizcaya", "Quirino", "Batanes"],
+        "III": ["Bulacan", "Pampanga", "Tarlac", "Zambales", "Bataan", "Nueva Ecija", "Aurora"],
         "IV-A": ["Batangas", "Cavite", "Laguna", "Quezon", "Rizal"],
+        "IV-B": ["Palawan", "Oriental Mindoro", "Occidental Mindoro", "Marinduque", "Romblon"],
+        "V": ["Albay", "Camarines Sur", "Camarines Norte", "Sorsogon", "Catanduanes", "Masbate"],
+        "VI": ["Iloilo", "Negros Occidental", "Aklan", "Capiz", "Antique", "Guimaras"],
+        "VII": ["Cebu", "Bohol", "Negros Oriental", "Siquijor"],
+        "VIII": ["Leyte", "Samar", "Southern Leyte", "Biliran", "Eastern Samar", "Northern Samar"],
+        "IX": ["Zamboanga del Sur", "Zamboanga del Norte", "Zamboanga Sibugay"],
+        "X": ["Misamis Oriental", "Bukidnon", "Misamis Occidental", "Lanao del Norte", "Camiguin"],
+        "XI": ["Davao del Sur", "Davao del Norte", "Davao Oriental", "Davao Occidental", "Davao de Oro"],
+        "XII": ["South Cotabato", "Sultan Kudarat", "North Cotabato", "Sarangani"],
+        "XIII": ["Agusan del Norte", "Surigao del Norte", "Agusan del Sur", "Surigao del Sur", "Dinagat Islands"],
+        "BARMM": ["Maguindanao", "Lanao del Sur", "Basilan", "Sulu", "Tawi-Tawi", "Cotabato City (Independent)"]
     },
     cities: {
-        "Metro Manila": ["Manila", "Quezon City", "Makati", "Taguig"],
-        "Batangas": ["Batangas City", "Lipa City", "Tanauan City", "Sto. Tomas"],
+        "Metro Manila": ["Manila", "Quezon City", "Makati", "Taguig", "Pasig", "Pasay", "Caloocan", "Mandaluyong", "San Juan", "Paranaque", "Las Pinas", "Muntinlupa", "Malabon", "Navotas", "Valenzuela", "Marikina"],
+        "Batangas": ["Batangas City", "Lipa City", "Tanauan City", "Sto. Tomas", "Calaca", "Nasugbu"],
+        "Cavite": ["Bacoor", "Dasmarinas", "Imus", "Tagaytay", "General Trias", "Trece Martires", "Kawit"],
+        "Laguna": ["Calamba", "Santa Rosa", "San Pablo", "Binan", "Cabuyao", "San Pedro", "Los Baños"],
+        "Quezon": ["Lucena City", "Tayabas City", "Gumaca"],
+        "Rizal": ["Antipolo City", "Cainta", "Taytay", "Angono"],
+        "Pampanga": ["San Fernando City", "Angeles City", "Mabalacat City", "Guagua"],
+        "Bulacan": ["Malolos City", "San Jose del Monte City", "Meycauayan City", "Sta. Maria"],
+        "Tarlac": ["Tarlac City", "Capas"],
+        "Zambales": ["Olongapo City", "Subic"],
+        "Cebu": ["Cebu City", "Mandaue", "Lapu-Lapu", "Talisay City", "Toledo City", "Danao City"],
+        "Iloilo": ["Iloilo City", "Passi City", "Pototan"],
+        "Negros Occidental": ["Bacolod City", "Talisay City", "Silay City", "Bago City"],
+        "Davao del Sur": ["Davao City", "Digos City"],
+        "Misamis Oriental": ["Cagayan de Oro City", "Gingoog City"],
+        "South Cotabato": ["General Santos City", "Koronadal City"],
+        "Benguet": ["Baguio City", "La Trinidad"],
+        "Albay": ["Legazpi City", "Tabaco City"],
+        "Palawan": ["Puerto Princesa City"],
+        "Zamboanga del Sur": ["Zamboanga City (Independent)"],
+        "Leyte": ["Tacloban City", "Ormoc City"],
+        "North Cotabato": ["Kidapawan City"]
     }
-}
+} as const
 
 export default function CheckoutPage() {
   const cartData = useCart() || {} 
@@ -276,9 +319,9 @@ export default function CheckoutPage() {
 
   // --- HELPERS ---
   // @ts-ignore
-  const getProvinces = () => selectedRegion ? ADDRESS_DATA.provinces[selectedRegion] || [] : []
+  const getProvinces = () => selectedRegion ? PHILIPPINE_ADDRESS_DATA.provinces[selectedRegion] || [] : []
   // @ts-ignore
-  const getCities = () => selectedProvince ? ADDRESS_DATA.cities[selectedProvince] || [] : []
+  const getCities = () => selectedProvince ? PHILIPPINE_ADDRESS_DATA.cities[selectedProvince] || [] : []
   
   const cityList = getCities()
   const shouldShowCityDropdown = selectedProvince && cityList.length > 0
@@ -371,7 +414,7 @@ export default function CheckoutPage() {
                                 defaultValue=""
                             >
                                 <option value="" disabled>Select...</option>
-                                {savedAddresses.map((addr) => (
+                                {savedAddresses.map((addr: any) => (
                                     <option key={addr.id} value={addr.id}>{addr.first_name} ({addr.city})</option>
                                 ))}
                                 <option value="new">+ New Address</option>
@@ -417,7 +460,7 @@ export default function CheckoutPage() {
                                 value={selectedRegion} onChange={(e) => { setSelectedRegion(e.target.value); setSelectedProvince(""); setSelectedCity("") }}
                             >
                                 <option value="" disabled>Select Region</option>
-                                {ADDRESS_DATA.regions.map(r => <option key={r.code} value={r.code}>{r.name}</option>)}
+                                {PHILIPPINE_ADDRESS_DATA.regions.map(r => <option key={r.code} value={r.code}>{r.name}</option>)}
                             </select>
                         </div>
 

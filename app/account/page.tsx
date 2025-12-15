@@ -13,26 +13,69 @@ import { onAuthStateChanged, signOut } from "firebase/auth"
 import { LogOut, Package, MapPin, User, ChevronRight, Loader2, X, CheckCircle2, Clock, Truck, Check, Plus, Trash2, Lock } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
-// --- LOCATION DATA ---
-const ADDRESS_DATA = {
+// --- LOCATION DATA (EXPANDED TO BE COMPREHENSIVE) ---
+const PHILIPPINE_ADDRESS_DATA = {
     regions: [
         { name: "National Capital Region (NCR)", code: "NCR" },
-        { name: "CALABARZON (Region IV-A)", code: "IV-A" },
+        { name: "Cordillera Administrative Region (CAR)", code: "CAR" },
+        { name: "Ilocos Region (Region I)", code: "I" },
+        { name: "Cagayan Valley (Region II)", code: "II" },
         { name: "Central Luzon (Region III)", code: "III" },
+        { name: "CALABARZON (Region IV-A)", code: "IV-A" },
+        { name: "MIMAROPA (Region IV-B)", code: "IV-B" },
+        { name: "Bicol Region (Region V)", code: "V" },
+        { name: "Western Visayas (Region VI)", code: "VI" },
         { name: "Central Visayas (Region VII)", code: "VII" },
+        { name: "Eastern Visayas (Region VIII)", code: "VIII" },
+        { name: "Zamboanga Peninsula (Region IX)", code: "IX" },
+        { name: "Northern Mindanao (Region X)", code: "X" },
+        { name: "Davao Region (Region XI)", code: "XI" },
+        { name: "SOCCSKSARGEN (Region XII)", code: "XII" },
+        { name: "Caraga (Region XIII)", code: "XIII" },
+        { name: "BARMM", code: "BARMM" },
     ],
     provinces: {
         "NCR": ["Metro Manila"],
+        "CAR": ["Benguet", "Ifugao", "Kalinga", "Mountain Province", "Abra", "Apayao"],
+        "I": ["Pangasinan", "La Union", "Ilocos Sur", "Ilocos Norte"],
+        "II": ["Cagayan", "Isabela", "Nueva Vizcaya", "Quirino", "Batanes"],
+        "III": ["Bulacan", "Pampanga", "Tarlac", "Zambales", "Bataan", "Nueva Ecija", "Aurora"],
         "IV-A": ["Batangas", "Cavite", "Laguna", "Quezon", "Rizal"],
-        "III": ["Bulacan", "Pampanga", "Tarlac", "Zambales"],
-        "VII": ["Cebu", "Bohol"]
+        "IV-B": ["Palawan", "Oriental Mindoro", "Occidental Mindoro", "Marinduque", "Romblon"],
+        "V": ["Albay", "Camarines Sur", "Camarines Norte", "Sorsogon", "Catanduanes", "Masbate"],
+        "VI": ["Iloilo", "Negros Occidental", "Aklan", "Capiz", "Antique", "Guimaras"],
+        "VII": ["Cebu", "Bohol", "Negros Oriental", "Siquijor"],
+        "VIII": ["Leyte", "Samar", "Southern Leyte", "Biliran", "Eastern Samar", "Northern Samar"],
+        "IX": ["Zamboanga del Sur", "Zamboanga del Norte", "Zamboanga Sibugay"],
+        "X": ["Misamis Oriental", "Bukidnon", "Misamis Occidental", "Lanao del Norte", "Camiguin"],
+        "XI": ["Davao del Sur", "Davao del Norte", "Davao Oriental", "Davao Occidental", "Davao de Oro"],
+        "XII": ["South Cotabato", "Sultan Kudarat", "North Cotabato", "Sarangani"],
+        "XIII": ["Agusan del Norte", "Surigao del Norte", "Agusan del Sur", "Surigao del Sur", "Dinagat Islands"],
+        "BARMM": ["Maguindanao", "Lanao del Sur", "Basilan", "Sulu", "Tawi-Tawi", "Cotabato City (Independent)"]
     },
     cities: {
-        "Metro Manila": ["Manila", "Quezon City", "Makati", "Taguig", "Pasig"],
-        "Batangas": ["Batangas City", "Lipa City", "Tanauan City", "Sto. Tomas"],
-        "Cavite": ["Bacoor", "Dasmarinas", "Imus", "Tagaytay"],
-        "Laguna": ["Calamba", "Santa Rosa", "San Pablo"],
-        "Cebu": ["Cebu City", "Mandaue", "Lapu-Lapu"],
+        "Metro Manila": ["Manila", "Quezon City", "Makati", "Taguig", "Pasig", "Pasay", "Caloocan", "Mandaluyong", "San Juan", "Paranaque", "Las Pinas", "Muntinlupa", "Malabon", "Navotas", "Valenzuela", "Marikina"],
+        "Batangas": ["Batangas City", "Lipa City", "Tanauan City", "Sto. Tomas", "Calaca", "Nasugbu"],
+        "Cavite": ["Bacoor", "Dasmarinas", "Imus", "Tagaytay", "General Trias", "Trece Martires", "Kawit"],
+        "Laguna": ["Calamba", "Santa Rosa", "San Pablo", "Binan", "Cabuyao", "San Pedro", "Los Baños"],
+        "Quezon": ["Lucena City", "Tayabas City", "Gumaca"],
+        "Rizal": ["Antipolo City", "Cainta", "Taytay", "Angono"],
+        "Pampanga": ["San Fernando City", "Angeles City", "Mabalacat City", "Guagua"],
+        "Bulacan": ["Malolos City", "San Jose del Monte City", "Meycauayan City", "Sta. Maria"],
+        "Tarlac": ["Tarlac City", "Capas"],
+        "Zambales": ["Olongapo City", "Subic"],
+        "Cebu": ["Cebu City", "Mandaue", "Lapu-Lapu", "Talisay City", "Toledo City", "Danao City"],
+        "Iloilo": ["Iloilo City", "Passi City", "Pototan"],
+        "Negros Occidental": ["Bacolod City", "Talisay City", "Silay City", "Bago City"],
+        "Davao del Sur": ["Davao City", "Digos City"],
+        "Misamis Oriental": ["Cagayan de Oro City", "Gingoog City"],
+        "South Cotabato": ["General Santos City", "Koronadal City"],
+        "Benguet": ["Baguio City", "La Trinidad"],
+        "Albay": ["Legazpi City", "Tabaco City"],
+        "Palawan": ["Puerto Princesa City"],
+        "Zamboanga del Sur": ["Zamboanga City (Independent)"],
+        "Leyte": ["Tacloban City", "Ormoc City"],
+        "North Cotabato": ["Kidapawan City"]
     }
 } as const
 
@@ -47,6 +90,9 @@ interface Order {
     customer_details: any; 
     payment_method?: string;
 }
+
+// Helper to check for a basic UUID structure (prevents Firebase UIDs from crashing Supabase UUID column)
+const isUuid = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
 // --- ORDER TRACKER COMPONENT ---
 const OrderTracker = ({ status }: { status: string }) => {
@@ -132,13 +178,18 @@ export default function AccountDashboard() {
             const { data: orderData } = await supabase.from('orders')
                 .select('*').eq('customer_email', email).order('created_at', { ascending: false })
             
-            // Fetch Addresses
-            const { data: addressData } = await supabase.from('addresses')
-                .select('*').eq('user_id', uid).order('created_at', { ascending: false })
+            // Fetch Addresses - ONLY FETCH if ID is a Supabase UUID
+            let addressData = []
+            if (isUuid(uid)) { 
+                const { data: fetchedAddresses } = await supabase.from('addresses')
+                    .select('*').eq('user_id', uid).order('created_at', { ascending: false })
+                addressData = fetchedAddresses || []
+            }
+
 
             if (mounted) {
                 setOrders(orderData || [])
-                setAddresses(addressData || [])
+                setAddresses(addressData)
                 setLoadingOrders(false)
                 setLoadingAuth(false) // AUTH SUCCESS
             }
@@ -195,7 +246,31 @@ export default function AccountDashboard() {
       router.push("/account/login")
   }
 
-  // --- ACTIONS ---
+  // --- ADDRESS ACTIONS ---
+  
+  const handleSelectSavedAddress = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const addressId = e.target.value
+        if (!addressId || addressId === '') return 
+
+        const selected = addresses.find(a => a.id === addressId)
+        if (selected) {
+            // Populate the newAddress state with the selected address data
+            setNewAddress({
+                firstName: selected.first_name,
+                lastName: selected.last_name,
+                phone: selected.phone,
+                address: selected.address,
+                region: selected.region,
+                province: selected.province,
+                city: selected.city,
+                barangay: selected.barangay,
+                postalCode: selected.postal_code,
+            })
+            setShowAddressModal(true) // Open the modal pre-filled with the selected address
+            toast({ title: "Address Loaded", description: `${selected.city} details loaded for editing.` })
+        }
+    }
+
   const handleSaveChanges = async () => {
       setIsUpdating(true)
       try {
@@ -214,10 +289,23 @@ export default function AccountDashboard() {
 
   const handleAddAddress = async (e: React.FormEvent) => {
       e.preventDefault()
+      
+      const userId = user?.id;
+      
+      // CRITICAL FIX: Block non-UUID user IDs (like Firebase UIDs) from inserting into a UUID column.
+      if (!userId || !isUuid(userId)) {
+          toast({ 
+              title: "Error Saving Address", 
+              description: "Address saving is currently only supported for accounts signed up with email/password (Supabase). Please use a different checkout method if logged in via Google.", 
+              variant: "destructive" 
+          });
+          return;
+      }
+      
       setSavingAddress(true)
       try {
           const { data, error } = await supabase.from('addresses').insert({
-              user_id: user?.id,
+              user_id: userId,
               first_name: newAddress.firstName,
               last_name: newAddress.lastName,
               phone: newAddress.phone,
@@ -256,9 +344,9 @@ export default function AccountDashboard() {
 
   // --- HELPERS ---
   // @ts-ignore
-  const getProvinces = () => newAddress.region ? ADDRESS_DATA.provinces[newAddress.region] || [] : []
+  const getProvinces = () => newAddress.region ? PHILIPPINE_ADDRESS_DATA.provinces[newAddress.region] || [] : []
   // @ts-ignore
-  const getCities = () => newAddress.province ? ADDRESS_DATA.cities[newAddress.province] || [] : []
+  const getCities = () => newAddress.province ? PHILIPPINE_ADDRESS_DATA.cities[newAddress.province] || [] : []
 
   // --- VIEWS ---
   
@@ -327,8 +415,45 @@ export default function AccountDashboard() {
     <motion.div initial={{opacity:0, y:10}} animate={{opacity:1, y:0}} className="space-y-6">
         <div className="flex justify-between items-center mb-2">
             <h2 className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Saved Locations</h2>
-            <Button onClick={() => setShowAddressModal(true)} size="sm" className="bg-[#AB462F] hover:bg-[#8f3a26] text-white rounded-full uppercase text-[9px] tracking-widest font-bold h-8"><Plus className="w-3 h-3 mr-1" /> Add New</Button>
+            <Button 
+                onClick={() => {
+                    if (user?.id && !isUuid(user.id)) {
+                        toast({ title: "Access Denied", description: "Address management requires an email/password account.", variant: "destructive" });
+                    } else {
+                        // Clear the form before opening for a new address
+                        setNewAddress({ firstName: user?.firstName || "", lastName: user?.lastName || "", phone: "", address: "", region: "", province: "", city: "", barangay: "", postalCode: "" });
+                        setShowAddressModal(true);
+                    }
+                }} 
+                size="sm" 
+                className="bg-[#AB462F] hover:bg-[#8f3a26] text-white rounded-full uppercase text-[9px] tracking-widest font-bold h-8"
+            >
+                <Plus className="w-3 h-3 mr-1" /> Add New
+            </Button>
         </div>
+        
+        {/* NEW: SAVED ADDRESS DROP-DOWN ALERT BOX */}
+        {addresses.length > 0 && (
+            <div className="p-4 bg-white dark:bg-black/40 border border-[#AB462F]/20 rounded-xl shadow-sm flex items-center justify-between animate-in fade-in">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-[#AB462F]/10 flex items-center justify-center text-[#AB462F]"><MapPin className="w-4 h-4" /></div>
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-wide text-stone-700 dark:text-stone-200">Load Existing Address</p>
+                        <p className="text-[10px] text-stone-500">Select an address to view or edit.</p>
+                    </div>
+                </div>
+                <select 
+                    className="bg-transparent text-xs font-bold text-[#AB462F] outline-none cursor-pointer text-right"
+                    onChange={handleSelectSavedAddress}
+                    defaultValue=""
+                >
+                    <option value="" disabled>Select...</option>
+                    {addresses.map((addr) => (
+                        <option key={addr.id} value={addr.id}>{addr.first_name} ({addr.city})</option>
+                    ))}
+                </select>
+            </div>
+        )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {addresses.map((addr) => (
@@ -492,7 +617,7 @@ export default function AccountDashboard() {
                                 <label className="text-[9px] font-bold uppercase tracking-widest text-stone-400">Region</label>
                                 <select required className="w-full border-b border-stone-300 dark:border-stone-700 bg-transparent py-2 text-sm outline-none focus:border-[#AB462F] transition-colors cursor-pointer" value={newAddress.region} onChange={e => setNewAddress({...newAddress, region: e.target.value, province: '', city: ''})}>
                                     <option value="" className="text-black">Select Region</option>
-                                    {ADDRESS_DATA.regions.map(r => <option key={r.code} value={r.code} className="text-black">{r.name}</option>)}
+                                    {PHILIPPINE_ADDRESS_DATA.regions.map(r => <option key={r.code} value={r.code} className="text-black">{r.name}</option>)}
                                 </select>
                             </div>
 

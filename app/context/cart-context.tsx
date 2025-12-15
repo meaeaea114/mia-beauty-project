@@ -27,6 +27,9 @@ type CartContextType = {
 
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
+// Helper to get a consistent variant key for comparison. Uses "Standard" as the default fallback string.
+const getVariantKey = (variant: string | null | undefined) => variant || "Standard"
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
   const [isCartOpen, setIsCartOpen] = useState(false)
@@ -88,15 +91,29 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // Fix: Force ID to be string
       const safeId = String(newItem.id)
       
+      // FIX 1: Normalize new variant key to ensure proper accumulation
+      const newVariantKey = getVariantKey(newItem.variant);
+
       const idx = current.findIndex(
-        (item) => item.id === safeId && item.variant === newItem.variant
+        // FIX 2: Use normalized key for comparison against stored items
+        (item) => item.id === safeId && getVariantKey(item.variant) === newVariantKey
       )
+      
       if (idx > -1) {
         const updated = [...current]
         updated[idx].quantity += 1
         return updated
       }
-      return [...current, { ...newItem, id: safeId, quantity: 1 }]
+      
+      // Ensure the added item also has the normalized variant key
+      const itemToAdd: CartItem = { 
+        ...newItem, 
+        id: safeId, 
+        quantity: 1, 
+        variant: newVariantKey // Store the normalized string
+      };
+
+      return [...current, itemToAdd]
     })
     setIsCartOpen(true)
   }
