@@ -1,8 +1,8 @@
 "use client"
-export const dynamic = "force-dynamic"
 
+// 1. ADD SUSPENSE IMPORT
 import * as React from "react"
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, Suspense } from "react" 
 import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
@@ -45,7 +45,7 @@ type Category = {
   items: Product[]
 }
 
-// --- Shop Data (Updated with New Descriptions & SKIN Category) ---
+// --- Shop Data (YOUR ORIGINAL DATA) ---
 const SHOP_DATA: Category[] = [
   {
     title: "LIPS",
@@ -360,7 +360,7 @@ const SHOP_DATA: Category[] = [
   {
     title: "SKIN",
     description: "Nourishing, high-performance skincare designed to hydrate, protect, and enhance your natural glow.",
-    media: "/images/Rectangle 80.png", // Using a placeholder image for SKIN category as none was specific for category video
+    media: "/images/Rectangle 80.png", 
     mediaType: "image",
     items: [
       { 
@@ -669,7 +669,8 @@ const ShopCard = ({ product, onClick, onAdd }: { product: Product, onClick: () =
   )
 }
 
-export default function ShopPage() {
+// 2. RENAMED ORIGINAL COMPONENT (Logic moved here)
+function ShopContent() {
   const { toast } = useToast()
   const { addItem } = useCart()
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -847,5 +848,18 @@ export default function ShopPage() {
 
       </div>
     </div>
+  )
+}
+
+// 3. NEW EXPORTED WRAPPER (This fixes the build error)
+export default function ShopPage() {
+  return (
+    <Suspense fallback={
+      <div className="w-full h-screen flex items-center justify-center bg-[#FAF9F6]">
+         <div className="w-16 h-16 border-4 border-[#AB462F]/20 border-t-[#AB462F] rounded-full animate-spin" />
+      </div>
+    }>
+      <ShopContent />
+    </Suspense>
   )
 }
